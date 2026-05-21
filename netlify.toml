@@ -1,24 +1,13 @@
 # netlify.toml
 # Netlify configuration for Timeline Visualisation
-# Publish the static site from the `public` directory.
-# No build step is required as the site consists of static HTML/CSS/JS.
+# Fully static deployment - no server-side functions needed.
+# timeline.csv is served directly from the public folder.
 
 [build]
   command = ""
   publish = "public"
 
-# Functions directory
-[functions]
-  directory = "netlify/functions"
-  included_files = ["timeline.csv"]
-
-# Redirect API to Netlify Function
-[[redirects]]
-  from = "/api/timeline"
-  to = "/.netlify/functions/timeline"
-  status = 200
-
-# Redirect all routes to index.html for client‑side routing (optional)
+# Redirect all routes to index.html for client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"

@@ -24,7 +24,7 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #e5dfd8;
+  background-color: transparent;
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -35,17 +35,17 @@ body {
 /* Timeline Container (Outer Window Frame) */
 #timeline-container {
   background-color: var(--bg-outer);
-  border: 1px solid var(--border-color);
-  border-radius: 25px;
-  width: 95vw;
-  max-width: 1400px;
-  height: 90vh;
-  max-height: 780px;
+  border: none;
+  border-radius: 0;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  padding: 10px 0 0 0;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
@@ -134,12 +134,13 @@ body {
 .timeline-window {
   background-color: var(--bg-inner);
   border: 1px solid var(--border-color);
-  border-radius: 20px;
+  border-radius: 20px 20px 0 0;
   flex-grow: 1;
   width: 100%;
-  overflow: hidden; /* Hide standard scrolls, we implement drag-to-scroll */
+  overflow: hidden;
   position: relative;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.01);
+  touch-action: pan-y;
 }
 
 /* Scrolling Canvas */
@@ -151,6 +152,7 @@ body {
   left: 0;
   cursor: grab;
   user-select: none;
+  touch-action: none; /* Canvas handles its own touch events via JS */
 }
 
 .timeline-canvas:active {
@@ -310,7 +312,6 @@ body {
 .timeline-elements.has-highlighted .timeline-card:not(.highlighted) {
   filter: grayscale(40%) blur(0.2px);
   border-color: rgba(0, 0, 0, 0.05);
-  pointer-events: none; /* Disable interaction with dimmed items */
 }
 
 .timeline-elements.has-highlighted .timeline-card:not(.highlighted) > * {
@@ -350,7 +351,7 @@ body {
     width: 100vw;
     height: 100vh;
     border-radius: 0;
-    padding: 8px;
+    padding: 8px 0 0 0;
   }
   
 

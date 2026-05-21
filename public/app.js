@@ -197,16 +197,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let cachedTimelineData = null;
 
-  // Fetch timeline data from Node API
-  fetch('/api/timeline')
-    .then(response => response.json())
-    .then(data => {
+  // CSV parsing helpers (mirrors server.js logic)
+  function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  function parseTimelineCSV(csvText) {
+    const lines = csvText.split(/\r?\n/);
+    const data = { config: {}, events: [] };
+    if (lines.length === 0) return data;
+
+    const headers = parseCSVLine(lines[0]);
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const values = parseCSVLine(line);
+      const row = {};
+      headers.forEach((header, index) => {
+        row[header] = values[index] || '';
+      });
+
+      if (row.Type === 'config') {
+        data.config[row.ID] = row.Year;
+      } else if (row.Type === 'event') {
+        data.events.push({
+          id: row.ID,
+          year: row.Year,
+          track: parseInt(row.Track, 10),
+          title: row.Title,
+          dateLabel: row['Date Label'] || row.DateLabel,
+          description: row.Description
+        });
+      }
+    }
+
+    // Sort events chronologically
+    data.events.sort((a, b) => {
+      const valA = getNumericValue(a.year);
+      const valB = getNumericValue(b.year);
+      if (valA !== valB) return valA - valB;
+      return a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    return data;
+  }
+
+  // Fetch timeline.csv directly (works on Netlify static hosting and local Express)
+  fetch('/timeline.csv')
+    .then(response => response.text())
+    .then(csvText => {
+      const data = parseTimelineCSV(csvText);
       cachedTimelineData = data;
       renderTimeline(data);
     })
     .catch(error => {
       console.error('Error fetching timeline data:', error);
     });
+
 
   // Debounced window resize event listener to trigger renderTimeline with new layout values
   let resizeTimeout;
@@ -775,7 +838,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Scroll events (covers drag-to-scroll, smooth navigation, wheel scroll)
   timelineWindow.addEventListener('scroll', updateStickyLabelsAndMask);
 
-  // 2. Drag to Scroll
+  // 2. Drag to Scroll (Mouse)
   let isDown = false;
   let startMouseX;
   let startMouseY;
@@ -815,6 +878,72 @@ document.addEventListener('DOMContentLoaded', () => {
     const walk = (x - startMouseX) * 1.5;
     timelineWindow.scrollLeft = scrollStartLeft - walk;
   });
+
+  // 2b. Touch to Scroll (Touchscreen) with momentum/inertia
+  let touchStartX = 0;
+  let touchScrollStart = 0;
+  let touchVelocity = 0;
+  let lastTouchX = 0;
+  let lastTouchTime = 0;
+  let momentumRafId = null;
+
+  function cancelMomentum() {
+    if (momentumRafId !== null) {
+      cancelAnimationFrame(momentumRafId);
+      momentumRafId = null;
+    }
+  }
+
+  function runMomentum() {
+    if (Math.abs(touchVelocity) < 0.5) {
+      momentumRafId = null;
+      return;
+    }
+    timelineWindow.scrollLeft += touchVelocity;
+    touchVelocity *= 0.92; // friction
+    momentumRafId = requestAnimationFrame(runMomentum);
+  }
+
+  timelineWindow.addEventListener('touchstart', (e) => {
+    cancelMomentum();
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchScrollStart = timelineWindow.scrollLeft;
+    lastTouchX = touch.clientX;
+    lastTouchTime = Date.now();
+    touchVelocity = 0;
+    dragMoved = false;
+  }, { passive: true });
+
+  timelineWindow.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    const dx = touch.clientX - touchStartX;
+    const dy = touch.clientY - e.touches[0].clientY; // always 0, kept for clarity
+    const absDx = Math.abs(touch.clientX - touchStartX);
+    const absDy = Math.abs(touch.clientY - (e.touches[0].clientY || 0));
+
+    if (absDx > 5) dragMoved = true;
+
+    // Track velocity from recent movement
+    const now = Date.now();
+    const dt = now - lastTouchTime;
+    if (dt > 0) {
+      touchVelocity = -(touch.clientX - lastTouchX) / dt * 16; // normalise to ~60fps frame
+    }
+    lastTouchX = touch.clientX;
+    lastTouchTime = now;
+
+    timelineWindow.scrollLeft = touchScrollStart - dx;
+  }, { passive: true });
+
+  timelineWindow.addEventListener('touchend', () => {
+    // Kick off momentum scroll
+    momentumRafId = requestAnimationFrame(runMomentum);
+  }, { passive: true });
+
+  timelineWindow.addEventListener('touchcancel', () => {
+    cancelMomentum();
+  }, { passive: true });
 
   // 3. Mouse Wheel horizontal translation
   timelineWindow.addEventListener('wheel', (e) => {
