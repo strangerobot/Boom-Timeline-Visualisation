@@ -20,10 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const isMobile = window.innerWidth < 768;
     if (isMobile) {
       const cardWidth = 230;
-      const colSpacing = 255;
-      const yearGap = 40;
-      const startX = 80;
-      const colStartPadding = 90;
+      const colSpacing = 240; // 10px gap between cards
+      const yearGap = 20;
+      const startX = 40;
+      const colStartPadding = 60;
       const xLabelOffset = 25;
 
       const usableHeight = windowHeight - 40;
@@ -74,10 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
         cardTopMerged,
         cardTopPostMerge,
         cardWidth: 232,
-        colSpacing: 262,
-        yearGap: 50,
-        startX: 120,
-        colStartPadding: 110,
+        colSpacing: 245, // 13px gap between cards
+        yearGap: 30,
+        startX: 70,
+        colStartPadding: 70,
         xLabelOffset: 35
       };
     }
@@ -385,17 +385,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Compute column offsets dynamically using a greedy constraint solver
       const colXOffsets = [];
-      const baseSlotSpacing = window.innerWidth < 768 ? 25 : 35; // Spacing per month (in pixels)
-      const firstColTime = columns.length > 0 ? getMonthInYear(columns[0][0], year) : 0;
+      const baseSlotSpacing = window.innerWidth < 768 ? 8 : 12; // Highly condensed spacing per month (in pixels)
+      const firstColTime = columns.length > 0 ? getNumericValue(columns[0][0].dateLabel || columns[0][0].year) : 0;
 
       columns.forEach((colEvents, colIdx) => {
-        const t_i = getMonthInYear(colEvents[0], year) - firstColTime;
+        const timeI = getNumericValue(colEvents[0].dateLabel || colEvents[0].year);
+        const t_i = (timeI - firstColTime) * 12; // Time difference in months
         let x_i = t_i * baseSlotSpacing;
 
         // Verify collision against all previous columns in the same year block
         for (let j = 0; j < colIdx; j++) {
           const prevColEvents = columns[j];
-          const t_j = getMonthInYear(prevColEvents[0], year) - firstColTime;
+          const timeJ = getNumericValue(prevColEvents[0].dateLabel || prevColEvents[0].year);
+          const t_j = (timeJ - firstColTime) * 12;
 
           // Determine if columns share a track
           let shareTrack = false;
@@ -482,9 +484,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       let yearWidth = layout.colStartPadding + maxOffset + layout.colSpacing;
-      if (yearEvents.length === 1) {
-        yearWidth = Math.max(yearWidth, layout.cardWidth * 2.5);
-      }
       const yearXEnd = yearXStart + yearWidth;
       yearPositionsRecord.xEnd = yearXEnd;
       yearPositions.push(yearPositionsRecord);
@@ -947,10 +946,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. Mouse Wheel horizontal translation
   timelineWindow.addEventListener('wheel', (e) => {
-    if (e.deltaY !== 0) {
+    // Only capture horizontal scrolls (trackpad swipes)
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && e.deltaX !== 0) {
       e.preventDefault();
-      timelineWindow.scrollLeft += e.deltaY * 0.8;
+      timelineWindow.scrollLeft += e.deltaX;
     }
+    // Ignore vertical scrolls (mouse wheels), allowing the native page to scroll
   }, { passive: false });
 
   // 4. Navigation Buttons (Arrows) - Sequential Pinning
