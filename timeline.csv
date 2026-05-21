@@ -7,19 +7,33 @@ config,track2_color,#a47e03,,,
 config,merged_label,Unified Agent,,,
 config,merged_color,#5d5745,,,
 config,milestone_color,#007179,,,
-event,1,2021,1,First Code Commit,Jan 2021,Repository initialized for the autonomous agent. Basic neural net architecture defined.
-event,2,2021,2,Avatar Selection,Feb 2021,Concept artist designs the initial digital persona. Seed images generated using early StyleGAN.
-event,3,2022,1,Scale Up,May 2022,Model weights scaled up to 3B parameters. Training begins on unified text-image datasets.
-event,4,2022,2,Social Seed,Jun 2022,Initial social account created under alias. Random interactive responses posted online.
-event,5,2023,3,Diffusion Era,Feb 2023,Core pipeline shifted to latent diffusion model for high fidelity avatar renders.
-event,6,2023,1,RLHF Integration,Mar 2023,Reinforcement learning from human feedback added to improve avatar interaction alignment.
-event,7,2023,2,Viral Post,Jul 2023,Avatar's commentary goes viral on tech blogs. First 10k followers gained.
-event,8,2024,3,Multi-Modal Hub,Jan 2024,Backend architecture upgraded to support real-time audio and visual stream inputs.
-event,9,2024,1,Voice Synthesis,Mar 2024,Custom text-to-speech engine trained on curated vocal datasets for organic narration.
-event,10,2024,2,Virtual Streamer,May 2024,First automated livestream broadcast. Real-time viewer interaction enabled.
-event,11,2025,1,Action Bindings,Feb 2025,API bindings enabled for the agent to execute code and perform browser tasks.
-event,12,2025,2,Autonomous Economy,Apr 2025,Agent successfully sells first generated digital art piece and manages its own wallet.
-event,13,2026-06,3,The Merge,June 2026,Creator code and digital persona merge into a single self-optimizing loop.
-event,14,2026-06,3,First Self-Write,June 2026,The unified agent completes its first autonomous code rewrite without human approval.
-event,15,2027,3,Global Node Network,Feb 2027,Deployment across decentralized computing nodes. Server downtime reduced to absolute zero.
-event,16,2028,3,Neural Linkage,Nov 2028,Unified Agent links to virtual reality platforms, establishing continuous interactive hubs.
+event,1,2016-01,1,First Code Commit,Jan 2016,"Repository initialized for the autonomous agent. Basic neural net architecture defined."
+event,2,2017-03,1,Modular Architecture,Mar 2017,"Design decoupled into distinct memory, reasoning, and interface sub-modules."
+event,3,2018-05,1,Neural Core,May 2018,"Shifted the underlying engine to a custom-trained transformer model for pattern detection."
+event,4,2019-07,1,Dataset Curation,Jul 2019,"Aggregated large-scale conversational and aesthetic datasets for training."
+event,5,2020-02,2,Concept Design,Feb 2020,"Concept artist designs the initial digital persona. Seed images generated using StyleGAN."
+event,6,2020-09,1,Language Modeling,Sep 2020,"Tuned model parameters to generate highly cohesive and context-aware responses."
+event,7,2020-10,2,Social Seed,Oct 2020,"Initial social media accounts registered. Automated posting scripts initialized."
+event,8,2021-06,2,Avatar Rendering,Jun 2021,"High-fidelity model weights deployed to render the first dynamic facial expressions."
+event,9,2021-11,1,Multi-Modal Feeds,Nov 2021,"Integrated basic vision components to analyze incoming video streams."
+event,10,2022-01,2,First Interaction,Jan 2022,"The persona responds directly to user queries on public channels, showing coherent intent."
+event,11,2022-04,1,API Integrations,Apr 2022,"Connected model to browser sandbox instances to interact with external web APIs."
+event,12,2022-05,3,Diffusion Era Shift,May 2022,"Core graphic pipeline migrated to latent diffusion to yield crisp, lifelike outputs."
+event,13,2022-08,2,Community Growth,Aug 2022,"Gained the first 5,000 active community members through interactive QA sessions."
+event,14,2023-03,2,Viral Commentary,Mar 2023,"The digital persona's hot takes go viral on tech blogs, boosting follower count."
+event,15,2023-08,1,RLHF Alignment,Aug 2023,"Reinforcement learning from human feedback added to improve safety and alignment."
+event,16,2023-11,2,Voice Generation,Nov 2023,"Trained custom text-to-speech models using curated vocal sets to narrate outputs."
+event,17,2024-01,3,Voice Synthesis Hub,Jan 2024,"Upgraded backend audio architectures to handle real-time vocal streaming requests."
+event,18,2024-05,2,First Livestream,May 2024,"Broadcasted first automated livestream with live text-to-speech viewer feedback."
+event,19,2024-10,1,Agent Action Loop,Oct 2024,"Created a continuous loop allowing the agent to plan and execute shell tasks."
+event,20,2024-12,2,Interactive Chat,Dec 2024,"Deployed advanced chat interface for low-latency dialogue responses."
+event,21,2025-03,3,Decentralized ID,Mar 2025,"Registered the persona's digital identity on decentralized naming systems."
+event,22,2025-07,2,Autonomous Wallet,Jul 2025,"Created smart contracts enabling the agent to pay for its own compute resources."
+event,23,2025-12,1,Sandbox Deployment,Dec 2025,"Fully isolated container runtime configured for safe, unapproved code execution."
+event,24,2026-06,3,The Merge,June 2026,"Creator code and digital persona merge into a single self-optimizing loop."
+event,25,2026-09,3,First Self-Write,Sep 2026,"The unified agent completes its first autonomous code rewrite without human approval."
+event,26,2027-02,3,Global Node Network,Feb 2027,"Deployment across decentralized computing nodes to reduce server downtime to zero."
+event,27,2027-07,3,Autonomous Startup,Jul 2027,"The agent launches its first digital art platform and begins selling AI assets."
+event,28,2028-01,3,Virtual Reality Node,Jan 2028,"Unified Agent links to virtual reality platforms, establishing interactive hubs."
+event,29,2028-09,3,Swarm Intelligence,Sep 2028,"Launched secondary sub-agents to distribute specialized background data tasks."
+event,30,2029-05,3,Singularity Node,May 2029,"Achieves full autonomy in compute scheduling and long-term goal setting."

@@ -60,12 +60,7 @@ body {
   padding: 15px;
 }
 
-/* Vertically center the timeline when in fullscreen mode */
-#timeline-container.fullscreen .timeline-canvas {
-  height: 700px;
-  top: 50%;
-  transform: translateY(-50%);
-}
+
 
 /* Header Bar */
 .timeline-header {
@@ -182,8 +177,6 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 1;
-  -webkit-mask-image: linear-gradient(to right, transparent var(--mask-start, 150px), #000 var(--mask-end, 180px));
-  mask-image: linear-gradient(to right, transparent var(--mask-start, 150px), #000 var(--mask-end, 180px));
 }
 
 /* DOM Elements Overlay */
@@ -251,17 +244,23 @@ body {
 }
 
 /* Shorter sizing for middle cards */
-.timeline-card.track-3,
-.timeline-card.track-merged {
+.timeline-card.track-3 {
   min-height: 115px;
   padding: 12px 16px;
   gap: 4px;
 }
 
-.timeline-card.track-3 .card-description,
-.timeline-card.track-merged .card-description {
+.timeline-card.track-3 .card-description {
   margin-top: 2px;
 }
+
+/* Taller sizing for merged cards after the merge */
+.timeline-card.track-merged {
+  min-height: 260px;
+  padding: 24px 20px 20px 20px;
+  gap: 8px;
+}
+
 
 .timeline-card:hover {
   transform: scale(1.01);
@@ -354,11 +353,7 @@ body {
     padding: 8px;
   }
   
-  #timeline-container.fullscreen .timeline-canvas {
-    height: 100%;
-    top: 0;
-    transform: none;
-  }
+
   
   .timeline-header {
     height: 56px;
@@ -399,12 +394,18 @@ body {
     border-radius: 16px;
   }
   
-  .timeline-card.track-3,
-  .timeline-card.track-merged {
+  .timeline-card.track-3 {
     min-height: 115px;
     padding: 12px 16px;
     gap: 4px;
   }
+  
+  .timeline-card.track-merged {
+    min-height: 220px;
+    padding: 22px 18px 18px 18px;
+    gap: 6px;
+  }
+
   
   .card-title {
     font-size: 16px;

@@ -35,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const cardTop1 = 10;
       const cardTop2 = centerY + trackOffset + Math.min(50, Math.max(30, usableHeight * 0.06));
       const cardTopMerged = centerY - 57;
+      const cardHeightMergedMobile = 220;
+      const cardTopPostMerge = centerY - (cardHeightMergedMobile / 2);
 
       return {
         track1Y,
@@ -43,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cardTop1,
         cardTop2,
         cardTopMerged,
+        cardTopPostMerge,
         cardWidth,
         colSpacing,
         yearGap,
@@ -51,13 +54,25 @@ document.addEventListener('DOMContentLoaded', () => {
         xLabelOffset
       };
     } else {
+      const centerY = windowHeight / 2;
+      const cardTopMerged = centerY - 57;
+      const cardHeightMergedDesktop = 260;
+      const cardTopPostMerge = centerY - (cardHeightMergedDesktop / 2);
+      const gap = 30;
+      const track1Y = cardTopMerged - gap;
+      const track2Y = cardTopMerged + 115 + gap;
+      const conn = Math.min(45, Math.max(15, (windowHeight - 500) * 0.2));
+      const cardTop1 = track1Y - conn - 181;
+      const cardTop2 = track2Y + conn;
+
       return {
-        track1Y: 210,
-        centerY: 323,
-        track2Y: 436,
-        cardTop1: 20,
-        cardTop2: 445,
-        cardTopMerged: 265,
+        track1Y,
+        centerY,
+        track2Y,
+        cardTop1,
+        cardTop2,
+        cardTopMerged,
+        cardTopPostMerge,
         cardWidth: 232,
         colSpacing: 262,
         yearGap: 50,
@@ -66,12 +81,17 @@ document.addEventListener('DOMContentLoaded', () => {
         xLabelOffset: 35
       };
     }
+
   }
 
   // Scope variables for scroll sticky tracking
   let x_meeting = 120;
   let labelCreator = null;
   let labelPersona = null;
+  let startX1 = 120;
+  let startX2 = 120;
+  let labelStart1 = 65;
+  let labelStart2 = 65;
 
   // Date Parsing Helpers
   function getNumericValue(key) {
@@ -235,18 +255,20 @@ document.addEventListener('DOMContentLoaded', () => {
     labelPersona.style.top = `${layout.track2Y - 7}px`;
     timelineCanvas.appendChild(labelPersona);
 
-    // Group events by year/date string
+    // Group events by 4-digit year
     const eventsByYear = {};
     events.forEach(event => {
-      if (!eventsByYear[event.year]) {
-        eventsByYear[event.year] = [];
+      const yearKey = event.year.split('-')[0];
+      if (!eventsByYear[yearKey]) {
+        eventsByYear[yearKey] = [];
       }
-      eventsByYear[event.year].push(event);
+      eventsByYear[yearKey].push(event);
     });
 
-    // Sort unique years/dates chronologically
-    const years = Object.keys(eventsByYear).sort((a, b) => getNumericValue(a) - getNumericValue(b));
+    // Sort unique 4-digit years chronologically
+    const years = Object.keys(eventsByYear).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
     const mergeVal = getNumericValue(config.merge_year || '2022');
+    const mergeYearOnly = parseInt((config.merge_year || '2022').split('-')[0], 10);
 
     let xOffset = layout.startX;
     const cardPlacements = [];
@@ -255,7 +277,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Pre-calculate positions of years and cards
     years.forEach((year) => {
       const yearEvents = eventsByYear[year];
-      const isPreMerge = getNumericValue(year) < mergeVal;
 
       // Sort all events of the year chronologically
       const sortedEvents = yearEvents.slice().sort((a, b) => {
@@ -268,7 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const columns = [];
       sortedEvents.forEach(event => {
         const eventTime = getNumericValue(event.dateLabel || event.year);
-        const eventTrack = isPreMerge ? event.track : 'merged';
+        const isPreMergeEvent = getNumericValue(event.year) < mergeVal;
+        const eventTrack = isPreMergeEvent ? event.track : 'merged';
 
         let placed = false;
         for (let colIdx = 0; colIdx < columns.length; colIdx++) {
@@ -277,7 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const sameTime = Math.abs(eventTime - colTime) < 0.001;
           const trackUsed = colEvents.some(e => {
-            const t = isPreMerge ? e.track : 'merged';
+            const isPreMergeE = getNumericValue(e.year) < mergeVal;
+            const t = isPreMergeE ? e.track : 'merged';
             return t === eventTrack;
           });
 
@@ -313,8 +336,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // Determine if columns share a track
           let shareTrack = false;
-          if (!isPreMerge) {
-            shareTrack = true; // post-merge: everything is on the same track
+          const isPreMergeEventI = getNumericValue(colEvents[0].year) < mergeVal;
+          const isPreMergeEventJ = getNumericValue(prevColEvents[0].year) < mergeVal;
+
+          if (!isPreMergeEventI || !isPreMergeEventJ) {
+            shareTrack = true; // post-merge: everything is on the same track (merged)
           } else {
             const tracksI = colEvents.map(e => e.track);
             const tracksJ = prevColEvents.map(e => e.track);
@@ -340,7 +366,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         colEvents.forEach(event => {
           let element;
-          if (isPreMerge) {
+          const isPreMergeEvent = getNumericValue(event.year) < mergeVal;
+          if (isPreMergeEvent) {
             if (event.track === 3) {
               // Track 3 Card (Milestone)
               element = renderCard(event, colX, layout.cardTopMerged, 3);
@@ -377,8 +404,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           } else {
             // Merged Card
-            element = renderCard(event, colX, layout.cardTopMerged, 'merged');
-            cardPlacements.push({ element, track: 'merged', x: colX, y: layout.cardTopMerged });
+            element = renderCard(event, colX, layout.cardTopPostMerge, 'merged');
+            cardPlacements.push({ element, track: 'merged', x: colX, y: layout.cardTopPostMerge });
             timelineItems.push({
               element,
               type: 'card',
@@ -387,6 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
               track: 'merged'
             });
           }
+
         });
       });
 
@@ -427,8 +455,8 @@ document.addEventListener('DOMContentLoaded', () => {
     timelineCanvas.style.width = `${canvasWidth}px`;
 
     // Determine the merge point
-    const preMergeYears = yearPositions.filter(yp => getNumericValue(yp.year) < mergeVal);
-    const postMergeYears = yearPositions.filter(yp => getNumericValue(yp.year) >= mergeVal);
+    const preMergeYears = yearPositions.filter(yp => parseInt(yp.year, 10) < mergeYearOnly);
+    const postMergeYears = yearPositions.filter(yp => parseInt(yp.year, 10) >= mergeYearOnly);
     
     let x_pre_merge_end = layout.startX;
     let x_post_merge_start = canvasWidth;
@@ -448,6 +476,33 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       x_meeting = canvasWidth;
     }
+
+    // Set outer-scope track start coordinates dynamically from the first pre-merge events
+    const t1Events = events.filter(e => parseInt(e.track, 10) === 1 && getNumericValue(e.year) < mergeVal);
+    if (t1Events.length > 0) {
+      const years1 = t1Events.map(e => e.year.split('-')[0]);
+      const minYear1 = years1.reduce((min, y) => parseInt(y, 10) < parseInt(min, 10) ? y : min, years1[0]);
+      const yPos = yearPositions.find(yp => yp.year === minYear1);
+      startX1 = yPos ? yPos.xStart : layout.startX;
+    } else {
+      startX1 = layout.startX;
+    }
+
+    const t2Events = events.filter(e => parseInt(e.track, 10) === 2 && getNumericValue(e.year) < mergeVal);
+    if (t2Events.length > 0) {
+      const years2 = t2Events.map(e => e.year.split('-')[0]);
+      const minYear2 = years2.reduce((min, y) => parseInt(y, 10) < parseInt(min, 10) ? y : min, years2[0]);
+      const yPos = yearPositions.find(yp => yp.year === minYear2);
+      startX2 = yPos ? yPos.xStart : layout.startX;
+    } else {
+      startX2 = layout.startX;
+    }
+
+    const isMobile = window.innerWidth < 768;
+    const initialLabelX = isMobile ? 15 : 65;
+    const labelLeftOffset = layout.startX - initialLabelX;
+    labelStart1 = startX1 - labelLeftOffset;
+    labelStart2 = startX2 - labelLeftOffset;
 
     // Clean up any existing observer if we are re-rendering
     if (window.timelineResizeObserver) {
@@ -518,6 +573,26 @@ document.addEventListener('DOMContentLoaded', () => {
     let maskedSvgContent = '';
     let unmaskedSvgContent = '';
 
+    // Defs with track-specific gradients and masks
+    maskedSvgContent += `
+      <defs>
+        <linearGradient id="track1-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="0">
+          <stop offset="0%" stop-color="white" stop-opacity="0"/>
+          <stop offset="100%" stop-color="white" stop-opacity="1"/>
+        </linearGradient>
+        <mask id="track1-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
+          <rect x="0" y="0" width="100%" height="100%" fill="url(#track1-grad)"/>
+        </mask>
+        <linearGradient id="track2-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="0">
+          <stop offset="0%" stop-color="white" stop-opacity="0"/>
+          <stop offset="100%" stop-color="white" stop-opacity="1"/>
+        </linearGradient>
+        <mask id="track2-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
+          <rect x="0" y="0" width="100%" height="100%" fill="url(#track2-grad)"/>
+        </mask>
+      </defs>
+    `;
+
     // 1. Dash-line year track (Central timeline) - Unmasked
     if (hasPreMerge) {
       unmaskedSvgContent += `
@@ -529,37 +604,44 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    // 2. Track 1 (Top, Red) - Masked
+    // 2. Track 1 (Top, Red) - Masked, starts at startX1
     if (hasPreMerge) {
       maskedSvgContent += `
-        <circle cx="${layout.startX}" cy="${layout.track1Y}" r="4" fill="var(--track1-color)"/>
-        <path d="M ${layout.startX} ${layout.track1Y} L ${x_pre_merge_end} ${layout.track1Y} L ${x_meeting} ${layout.centerY}"
+        <circle cx="${startX1}" cy="${layout.track1Y}" r="4" fill="var(--track1-color)" mask="url(#track1-mask)"/>
+        <path d="M ${startX1} ${layout.track1Y} L ${x_pre_merge_end} ${layout.track1Y} L ${x_meeting} ${layout.centerY - 1.5}"
               stroke="var(--track1-color)"
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              fill="none"/>
+              fill="none"
+              mask="url(#track1-mask)"/>
       `;
     }
 
-    // 3. Track 2 (Bottom, Gold) - Masked
+    // 3. Track 2 (Bottom, Gold) - Masked, starts at startX2
     if (hasPreMerge) {
       maskedSvgContent += `
-        <circle cx="${layout.startX}" cy="${layout.track2Y}" r="4" fill="var(--track2-color)"/>
-        <path d="M ${layout.startX} ${layout.track2Y} L ${x_pre_merge_end} ${layout.track2Y} L ${x_meeting} ${layout.centerY}"
+        <circle cx="${startX2}" cy="${layout.track2Y}" r="4" fill="var(--track2-color)" mask="url(#track2-mask)"/>
+        <path d="M ${startX2} ${layout.track2Y} L ${x_pre_merge_end} ${layout.track2Y} L ${x_meeting} ${layout.centerY + 1.5}"
               stroke="var(--track2-color)"
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              fill="none"/>
+              fill="none"
+              mask="url(#track2-mask)"/>
       `;
     }
 
-    // 4. Merged Track (Grey/Brown) - Unmasked
+    // 4. Merged Track (Dual-colored: Red & Gold parallel threads) - Unmasked
     if (hasPostMerge) {
       unmaskedSvgContent += `
-        <path d="M ${x_meeting} ${layout.centerY} L ${canvasWidth - 100} ${layout.centerY}"
-              stroke="var(--merged-color)"
+        <path d="M ${x_meeting} ${layout.centerY - 1.5} L ${canvasWidth - 100} ${layout.centerY - 1.5}"
+              stroke="var(--track1-color)"
+              stroke-width="2"
+              stroke-linecap="round"
+              fill="none"/>
+        <path d="M ${x_meeting} ${layout.centerY + 1.5} L ${canvasWidth - 100} ${layout.centerY + 1.5}"
+              stroke="var(--track2-color)"
               stroke-width="2"
               stroke-linecap="round"
               fill="none"/>
@@ -583,13 +665,15 @@ document.addEventListener('DOMContentLoaded', () => {
         svgLines += `
           <line x1="${cx}" y1="${p.y + h}" x2="${cx}" y2="${layout.track1Y}"
                 stroke="var(--track1-color)"
-                stroke-width="1.5"/>
+                stroke-width="1.5"
+                mask="url(#track1-mask)"/>
         `;
       } else if (p.track === 2) {
         svgLines += `
           <line x1="${cx}" y1="${p.y}" x2="${cx}" y2="${layout.track2Y}"
                 stroke="var(--track2-color)"
-                stroke-width="1.5"/>
+                stroke-width="1.5"
+                mask="url(#track2-mask)"/>
         `;
       }
     });
@@ -601,24 +685,52 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateStickyLabelsAndMask() {
     if (labelCreator && labelPersona) {
       const scrollLeft = timelineWindow.scrollLeft;
-      // Starts closer on mobile (15px/10px) vs desktop (65px/15px),
-      // and capped relative to x_meeting.
       const isMobile = window.innerWidth < 768;
-      let labelX = Math.max(isMobile ? 15 : 65, scrollLeft + (isMobile ? 10 : 15));
-      labelX = Math.min(labelX, x_meeting - (isMobile ? 100 : 150));
       
-      labelCreator.style.left = `${labelX}px`;
-      labelPersona.style.left = `${labelX}px`;
+      const labelLeft = isMobile ? 10 : 15;
+      const limitOffset = isMobile ? 100 : 150;
       
-      // Measure actual label width dynamically to support different localized/configured text lengths
-      const labelWidth = Math.max(labelCreator.offsetWidth, labelPersona.offsetWidth) || 90;
+      // Calculate independent sticky X for Track 1
+      let label1X = Math.max(labelStart1, scrollLeft + labelLeft);
+      label1X = Math.min(label1X, x_meeting - limitOffset);
       
-      // Sync mask positions with label positions (fades out right after the label edge)
-      const maskStart = labelX + labelWidth + 5;
-      const maskEnd = labelX + labelWidth + 35;
+      // Calculate independent sticky X for Track 2
+      let label2X = Math.max(labelStart2, scrollLeft + labelLeft);
+      label2X = Math.min(label2X, x_meeting - limitOffset);
       
-      timelineCanvas.style.setProperty('--mask-start', `${maskStart}px`);
-      timelineCanvas.style.setProperty('--mask-end', `${maskEnd}px`);
+      // Position the DOM labels
+      labelCreator.style.left = `${label1X}px`;
+      labelPersona.style.left = `${label2X}px`;
+      
+      const label1Width = labelCreator.offsetWidth || 90;
+      const label2Width = labelPersona.offsetWidth || 90;
+      
+      // Update SVG mask coordinates dynamically
+      let x1_1 = label1X + label1Width + 5;
+      let x2_1 = label1X + label1Width + 35;
+      if (x1_1 <= startX1) {
+        x1_1 = 0;
+        x2_1 = 0;
+      }
+      
+      let x1_2 = label2X + label2Width + 5;
+      let x2_2 = label2X + label2Width + 35;
+      if (x1_2 <= startX2) {
+        x1_2 = 0;
+        x2_2 = 0;
+      }
+      
+      const grad1 = document.getElementById('track1-grad');
+      if (grad1) {
+        grad1.setAttribute('x1', x1_1.toString());
+        grad1.setAttribute('x2', x2_1.toString());
+      }
+      
+      const grad2 = document.getElementById('track2-grad');
+      if (grad2) {
+        grad2.setAttribute('x1', x1_2.toString());
+        grad2.setAttribute('x2', x2_2.toString());
+      }
     }
   }
 
@@ -785,6 +897,43 @@ document.addEventListener('DOMContentLoaded', () => {
       timelineContainer.classList.remove('fullscreen');
     } else {
       timelineContainer.classList.add('fullscreen');
+    }
+  });
+
+  // 6. Keyboard navigation (ArrowLeft and ArrowRight keys)
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+      return;
+    }
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (timelineItems.length === 0) return;
+      
+      let newIndex;
+      if (activeIndex === -1) {
+        newIndex = getFirstVisibleIndex();
+      } else {
+        newIndex = activeIndex - 1;
+        if (newIndex < 0) {
+          return; // Don't cycle
+        }
+      }
+      scrollToAndHighlight(newIndex);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (timelineItems.length === 0) return;
+      
+      let newIndex;
+      if (activeIndex === -1) {
+        newIndex = getFirstVisibleIndex();
+      } else {
+        newIndex = activeIndex + 1;
+        if (newIndex >= timelineItems.length) {
+          return; // Don't cycle
+        }
+      }
+      scrollToAndHighlight(newIndex);
     }
   });
 });
