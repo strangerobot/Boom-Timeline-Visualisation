@@ -824,36 +824,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, { passive: false });
 
-  // 3b. Touch swipe-to-scroll (reuses isDown / startMouseX / scrollStartLeft from mouse drag above)
-  timelineWindow.addEventListener('touchstart', (e) => {
-    const touch = e.touches[0];
-    isDown = true;
-    dragMoved = false;
-    startMouseX = touch.clientX;
-    startMouseY = touch.clientY;
-    scrollStartLeft = timelineWindow.scrollLeft;
-  }, { passive: true });
-
-  timelineWindow.addEventListener('touchmove', (e) => {
-    if (!isDown) return;
-    const touch = e.touches[0];
-    const dx = touch.clientX - startMouseX;
-    const dy = touch.clientY - startMouseY;
-
-    // Only hijack horizontal swipes; let vertical swipes scroll the page normally
-    if (Math.abs(dx) > Math.abs(dy)) {
-      e.preventDefault();
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist > 5) dragMoved = true;
-      timelineWindow.scrollLeft = scrollStartLeft - dx; // 1:1 with finger, no multiplier
-    }
-  }, { passive: false });
-
-  timelineWindow.addEventListener('touchend', () => {
-    isDown = false;
-  }, { passive: true });
-
-
 
   // 4. Navigation Buttons (Arrows) - Sequential Pinning
   btnPrev.addEventListener('click', () => {
