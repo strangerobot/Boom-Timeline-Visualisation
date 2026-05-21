@@ -845,7 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > 5) dragMoved = true;
-      timelineWindow.scrollLeft = scrollStartLeft - dx * 1.5;
+      timelineWindow.scrollLeft = scrollStartLeft - dx; // 1:1 with finger, no multiplier
     }
   }, { passive: false });
 
