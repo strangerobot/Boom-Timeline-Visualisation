@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Merging Timeline</title>
+  <!-- Load Premium Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,700;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="timeline-container">
+    <!-- Top Navigation Bar -->
+    <header class="timeline-header">
+      <div class="nav-controls">
+        <button id="btn-prev" class="nav-btn" aria-label="Previous">
+          <!-- Back arrow SVG -->
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 8l-8 8 8 8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button id="btn-next" class="nav-btn" aria-label="Next">
+          <!-- Forward arrow SVG -->
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 8l8 8-8 8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      
+      <p class="instruction-text">Swipe or use arrows to navigate</p>
+      
+      <div class="fullscreen-control">
+        <button id="btn-fullscreen" class="nav-btn" aria-label="Toggle Fullscreen">
+          <!-- Fullscreen SVG -->
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 12V6h6M26 12V6h-6M6 20v6h6M26 20v6h-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+    
+    <!-- Timeline Window (Viewport) -->
+    <main id="timeline-window" class="timeline-window">
+      <!-- Timeline Canvas (Dynamic scrolling container) -->
+      <div id="timeline-canvas" class="timeline-canvas">
+        
+        <!-- SVG Container for Unmasked central timeline lines -->
+        <svg id="timeline-svg-unmasked" class="timeline-svg-unmasked"></svg>
+
+        <!-- SVG Container for Timeline Tracks and Connectors -->
+        <svg id="timeline-svg" class="timeline-svg"></svg>
+        
+        <!-- Interactive Elements Overlay (Cards, Years, Milestones) -->
+        <div id="timeline-elements" class="timeline-elements"></div>
+        
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

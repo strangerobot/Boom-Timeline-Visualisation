@@ -1,0 +1,426 @@
+/* CSS Variables for Dynamic Config via CSV */
+:root {
+  --track1-color: #bc0000;
+  --track2-color: #a47e03;
+  --merged-color: #5d5745;
+  --milestone-color: #007179;
+  
+  --bg-outer: #f2eee9;
+  --bg-inner: #faf6f0;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --text-gray: #8d8d8d;
+  --text-light-gray: #aeaeae;
+  --text-black: #111111;
+  --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Base resets */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #e5dfd8;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Timeline Container (Outer Window Frame) */
+#timeline-container {
+  background-color: var(--bg-outer);
+  border: 1px solid var(--border-color);
+  border-radius: 25px;
+  width: 95vw;
+  max-width: 1400px;
+  height: 90vh;
+  max-height: 780px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+/* Fullscreen Mode override */
+#timeline-container.fullscreen {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  padding: 15px;
+}
+
+/* Vertically center the timeline when in fullscreen mode */
+#timeline-container.fullscreen .timeline-canvas {
+  height: 700px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Header Bar */
+.timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  width: 100%;
+  height: 70px;
+  flex-shrink: 0;
+}
+
+/* Nav buttons layout */
+.nav-controls {
+  display: flex;
+  gap: 10px;
+  height: 48px;
+}
+
+.nav-btn {
+  background-color: #e8e1da;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  width: 64px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #333333;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-btn svg {
+  width: 32px;
+  height: 32px;
+}
+
+.nav-btn:hover {
+  background-color: #ded6cf;
+  transform: translateY(-1px);
+}
+
+.nav-btn:active {
+  background-color: #cfc7c0;
+  transform: translateY(0);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Center Instruction Text */
+.instruction-text {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 16px;
+  color: var(--text-gray);
+  text-align: center;
+  user-select: none;
+}
+
+/* Fullscreen Toggle Block */
+.fullscreen-control {
+  display: flex;
+  height: 48px;
+}
+
+/* Inner Window (Timeline Canvas Viewport) */
+.timeline-window {
+  background-color: var(--bg-inner);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  flex-grow: 1;
+  width: 100%;
+  overflow: hidden; /* Hide standard scrolls, we implement drag-to-scroll */
+  position: relative;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.01);
+}
+
+/* Scrolling Canvas */
+.timeline-canvas {
+  height: 100%;
+  width: 2500px; /* Will be set dynamically by app.js */
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: grab;
+  user-select: none;
+}
+
+.timeline-canvas:active {
+  cursor: grabbing;
+}
+
+/* Unmasked SVG for central tracks */
+.timeline-svg-unmasked {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Background/Track SVG */
+.timeline-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  -webkit-mask-image: linear-gradient(to right, transparent var(--mask-start, 150px), #000 var(--mask-end, 180px));
+  mask-image: linear-gradient(to right, transparent var(--mask-start, 150px), #000 var(--mask-end, 180px));
+}
+
+/* DOM Elements Overlay */
+.timeline-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+/* Track Names / Labels (Left side) */
+.track-label {
+  position: absolute;
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  left: 65px;
+  z-index: 10;
+}
+
+.track-label.creator {
+  color: var(--track1-color);
+  top: 201px;
+}
+
+.track-label.persona {
+  color: var(--track2-color);
+  top: 429px;
+}
+
+/* Year Label Capsules on dashed axis */
+.year-label {
+  position: absolute;
+  background-color: var(--bg-inner);
+  padding: 5px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-light-gray);
+  transform: translate(-50%, -50%);
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Card layout styles */
+.timeline-card {
+  position: absolute;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  width: 232px;
+  min-height: 181px;
+  padding: 24px 20px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-subtle);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, opacity 0.4s ease, filter 0.4s ease;
+  user-select: text; /* Allow users to copy text from cards */
+  cursor: default;
+}
+
+/* Shorter sizing for middle cards */
+.timeline-card.track-3,
+.timeline-card.track-merged {
+  min-height: 115px;
+  padding: 12px 16px;
+  gap: 4px;
+}
+
+.timeline-card.track-3 .card-description,
+.timeline-card.track-merged .card-description {
+  margin-top: 2px;
+}
+
+.timeline-card:hover {
+  transform: scale(1.01);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Card inner text elements */
+.card-title {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* Dynamic colors for card titles based on tracks */
+.timeline-card.track-1 .card-title {
+  color: var(--track1-color);
+}
+
+.timeline-card.track-2 .card-title {
+  color: var(--track2-color);
+}
+
+.timeline-card.track-3 .card-title {
+  color: var(--milestone-color);
+}
+
+.timeline-card.track-merged .card-title {
+  color: var(--merged-color);
+}
+
+.card-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-gray);
+  line-height: 1;
+}
+
+.card-description {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  color: var(--text-black);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.timeline-elements.has-highlighted .timeline-card:not(.highlighted) {
+  filter: grayscale(40%) blur(0.2px);
+  border-color: rgba(0, 0, 0, 0.05);
+  pointer-events: none; /* Disable interaction with dimmed items */
+}
+
+.timeline-elements.has-highlighted .timeline-card:not(.highlighted) > * {
+  opacity: 0.3;
+}
+
+/* Highlighted states for Cards */
+.timeline-card.highlighted {
+  transform: scale(1.04);
+  z-index: 20 !important;
+  border-width: 2px;
+  pointer-events: auto !important;
+}
+
+.timeline-card.highlighted.track-1 {
+  border-color: var(--track1-color);
+  box-shadow: var(--shadow-hover);
+}
+
+.timeline-card.highlighted.track-2 {
+  border-color: var(--track2-color);
+  box-shadow: var(--shadow-hover);
+}
+
+.timeline-card.highlighted.track-3 {
+  border-color: var(--milestone-color);
+  box-shadow: var(--shadow-hover);
+}
+
+.timeline-card.highlighted.track-merged {
+  border-color: var(--merged-color);
+  box-shadow: var(--shadow-hover);
+}
+
+@media (max-width: 767px) {
+  #timeline-container {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    padding: 8px;
+  }
+  
+  #timeline-container.fullscreen .timeline-canvas {
+    height: 100%;
+    top: 0;
+    transform: none;
+  }
+  
+  .timeline-header {
+    height: 56px;
+    padding: 5px 10px;
+  }
+  
+  .nav-controls {
+    height: 36px;
+    gap: 6px;
+  }
+  
+  .nav-btn {
+    width: 44px;
+    height: 36px;
+    border-radius: 8px;
+  }
+  
+  .nav-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .instruction-text {
+    font-size: 11px;
+    flex-grow: 1;
+    padding: 0 5px;
+    line-height: 1.2;
+  }
+  
+  .fullscreen-control {
+    height: 36px;
+  }
+  
+  .timeline-card {
+    width: 230px;
+    min-height: 170px;
+    padding: 22px 18px 18px 18px;
+    border-radius: 16px;
+  }
+  
+  .timeline-card.track-3,
+  .timeline-card.track-merged {
+    min-height: 115px;
+    padding: 12px 16px;
+    gap: 4px;
+  }
+  
+  .card-title {
+    font-size: 16px;
+  }
+  
+  .card-date {
+    font-size: 13px;
+  }
+  
+  .card-description {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .track-label {
+    font-size: 13px;
+    left: 15px;
+  }
+}
+

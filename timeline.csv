@@ -1,0 +1,25 @@
+Type,ID,Year,Track,Title,Date Label,Description
+config,merge_year,2026-06,,,
+config,track1_label,The Creator,,,
+config,track1_color,#bc0000,,,
+config,track2_label,The Persona,,,
+config,track2_color,#a47e03,,,
+config,merged_label,Unified Agent,,,
+config,merged_color,#5d5745,,,
+config,milestone_color,#007179,,,
+event,1,2021,1,First Code Commit,Jan 2021,Repository initialized for the autonomous agent. Basic neural net architecture defined.
+event,2,2021,2,Avatar Selection,Feb 2021,Concept artist designs the initial digital persona. Seed images generated using early StyleGAN.
+event,3,2022,1,Scale Up,May 2022,Model weights scaled up to 3B parameters. Training begins on unified text-image datasets.
+event,4,2022,2,Social Seed,Jun 2022,Initial social account created under alias. Random interactive responses posted online.
+event,5,2023,3,Diffusion Era,Feb 2023,Core pipeline shifted to latent diffusion model for high fidelity avatar renders.
+event,6,2023,1,RLHF Integration,Mar 2023,Reinforcement learning from human feedback added to improve avatar interaction alignment.
+event,7,2023,2,Viral Post,Jul 2023,Avatar's commentary goes viral on tech blogs. First 10k followers gained.
+event,8,2024,3,Multi-Modal Hub,Jan 2024,Backend architecture upgraded to support real-time audio and visual stream inputs.
+event,9,2024,1,Voice Synthesis,Mar 2024,Custom text-to-speech engine trained on curated vocal datasets for organic narration.
+event,10,2024,2,Virtual Streamer,May 2024,First automated livestream broadcast. Real-time viewer interaction enabled.
+event,11,2025,1,Action Bindings,Feb 2025,API bindings enabled for the agent to execute code and perform browser tasks.
+event,12,2025,2,Autonomous Economy,Apr 2025,Agent successfully sells first generated digital art piece and manages its own wallet.
+event,13,2026-06,3,The Merge,June 2026,Creator code and digital persona merge into a single self-optimizing loop.
+event,14,2026-06,3,First Self-Write,June 2026,The unified agent completes its first autonomous code rewrite without human approval.
+event,15,2027,3,Global Node Network,Feb 2027,Deployment across decentralized computing nodes. Server downtime reduced to absolute zero.
+event,16,2028,3,Neural Linkage,Nov 2028,Unified Agent links to virtual reality platforms, establishing continuous interactive hubs.
