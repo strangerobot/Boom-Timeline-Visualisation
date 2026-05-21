@@ -137,18 +137,9 @@ body {
   border-radius: 20px;
   flex-grow: 1;
   width: 100%;
-  overflow-x: scroll;  /* Native scroll — lets touch swipe work smoothly on mobile */
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch; /* Momentum scrolling on iOS */
-  touch-action: pan-x;              /* Tell browser this element scrolls horizontally */
-  scrollbar-width: none;            /* Firefox: hide scrollbar */
+  overflow: hidden; /* Hide standard scrolls, we implement drag-to-scroll */
   position: relative;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.01);
-}
-
-/* Hide scrollbar on WebKit (Chrome, Safari, Edge) */
-.timeline-window::-webkit-scrollbar {
-  display: none;
 }
 
 /* Scrolling Canvas */
@@ -160,7 +151,6 @@ body {
   left: 0;
   cursor: grab;
   user-select: none;
-  touch-action: pan-x; /* Propagate horizontal pan to parent */
 }
 
 .timeline-canvas:active {

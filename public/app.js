@@ -824,7 +824,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, { passive: false });
 
-
   // 4. Navigation Buttons (Arrows) - Sequential Pinning
   btnPrev.addEventListener('click', () => {
     if (timelineItems.length === 0) return;
