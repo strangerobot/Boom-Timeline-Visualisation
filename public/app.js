@@ -773,7 +773,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- INTERACTIVITY HANDLERS ---
 
   // 1. Scroll events (covers drag-to-scroll, smooth navigation, wheel scroll)
-  timelineWindow.addEventListener('scroll', updateStickyLabelsAndMask);
+  // Throttled via rAF to avoid layout thrashing during rapid scroll/drag
+  let scrollRafPending = false;
+  timelineWindow.addEventListener('scroll', () => {
+    if (!scrollRafPending) {
+      scrollRafPending = true;
+      requestAnimationFrame(() => {
+        updateStickyLabelsAndMask();
+        scrollRafPending = false;
+      });
+    }
+  });
 
   // 2. Drag to Scroll
   let isDown = false;
