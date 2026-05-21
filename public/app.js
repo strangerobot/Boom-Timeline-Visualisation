@@ -773,17 +773,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- INTERACTIVITY HANDLERS ---
 
   // 1. Scroll events (covers drag-to-scroll, smooth navigation, wheel scroll)
-  // Throttled via rAF to avoid layout thrashing during rapid scroll/drag
-  let scrollRafPending = false;
-  timelineWindow.addEventListener('scroll', () => {
-    if (!scrollRafPending) {
-      scrollRafPending = true;
-      requestAnimationFrame(() => {
-        updateStickyLabelsAndMask();
-        scrollRafPending = false;
-      });
-    }
-  });
+  timelineWindow.addEventListener('scroll', updateStickyLabelsAndMask);
 
   // 2. Drag to Scroll
   let isDown = false;
@@ -833,6 +823,37 @@ document.addEventListener('DOMContentLoaded', () => {
       timelineWindow.scrollLeft += e.deltaY * 0.8;
     }
   }, { passive: false });
+
+  // 3b. Touch swipe-to-scroll (reuses isDown / startMouseX / scrollStartLeft from mouse drag above)
+  timelineWindow.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    isDown = true;
+    dragMoved = false;
+    startMouseX = touch.clientX;
+    startMouseY = touch.clientY;
+    scrollStartLeft = timelineWindow.scrollLeft;
+  }, { passive: true });
+
+  timelineWindow.addEventListener('touchmove', (e) => {
+    if (!isDown) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - startMouseX;
+    const dy = touch.clientY - startMouseY;
+
+    // Only hijack horizontal swipes; let vertical swipes scroll the page normally
+    if (Math.abs(dx) > Math.abs(dy)) {
+      e.preventDefault();
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 5) dragMoved = true;
+      timelineWindow.scrollLeft = scrollStartLeft - dx * 1.5;
+    }
+  }, { passive: false });
+
+  timelineWindow.addEventListener('touchend', () => {
+    isDown = false;
+  }, { passive: true });
+
+
 
   // 4. Navigation Buttons (Arrows) - Sequential Pinning
   btnPrev.addEventListener('click', () => {
