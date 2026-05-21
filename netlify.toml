@@ -1,0 +1,14 @@
+# netlify.toml
+# Netlify configuration for Timeline Visualisation
+# Publish the static site from the `public` directory.
+# No build step is required as the site consists of static HTML/CSS/JS.
+[build]
+  # If you have a build script, specify it here. For a static site, leave empty.
+  command = ""
+  publish = "public"
+
+# Redirect all routes to index.html for client‑side routing (optional)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
