@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const xLabelOffset = 15;
 
       const usableHeight = windowHeight - 40;
-      const centerY = (usableHeight / 2) - 10;
-      const trackOffset = Math.min(85, Math.max(70, usableHeight * 0.15));
+      const centerY = usableHeight / 2;
+      const trackOffset = Math.min(65, Math.max(48, usableHeight * 0.13));
       const track1Y = centerY - trackOffset;
       const track2Y = centerY + trackOffset;
       
