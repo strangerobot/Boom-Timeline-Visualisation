@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function getLayout(windowHeight) {
     const isMobile = window.innerWidth < 600;
     if (isMobile) {
-      const cardWidth = 160;
-      const colSpacing = 170; // 10px gap between cards
+      const cardWidth = 200;
+      const colSpacing = 210; // 10px gap between cards
       const yearGap = 15;
       const startX = 20;
       const colStartPadding = 45;
@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const usableHeight = windowHeight - 40;
       const centerY = usableHeight / 2;
-      const trackOffset = Math.min(65, Math.max(48, usableHeight * 0.13));
+      const trackOffset = Math.min(80, Math.max(48, usableHeight * 0.13));
       const track1Y = centerY - trackOffset;
       const track2Y = centerY + trackOffset;
-      
+
       const cardTop1 = track1Y - 15 - 170; // 15px gap above the track line (assumes card height of 170px)
       const cardTop2 = track2Y + 15;        // 15px gap below the track line
       const cardTopMerged = centerY - 42;   // Centered (card height is 84px)
@@ -99,33 +99,33 @@ document.addEventListener('DOMContentLoaded', () => {
   function getNumericValue(key) {
     if (!key) return 0;
     const str = key.toString().trim();
-    
+
     // Standard YYYY-MM
     const matchYM = str.match(/^(\d{4})-(\d{2})$/);
     if (matchYM) {
       return parseInt(matchYM[1], 10) + (parseInt(matchYM[2], 10) - 1) / 12;
     }
-    
+
     // Standard YYYY
     const matchY = str.match(/^(\d{4})$/);
     if (matchY) {
       return parseInt(matchY, 10);
     }
-    
+
     // English Month/Year e.g., "June 2026"
     const dateParsed = Date.parse(str);
     if (!isNaN(dateParsed)) {
       const dateObj = new Date(dateParsed);
       return dateObj.getFullYear() + dateObj.getMonth() / 12;
     }
-    
+
     return parseFloat(str) || 0;
   }
 
   function getDisplayLabel(key) {
     if (!key) return '';
     const str = key.toString().trim();
-    
+
     // YYYY-MM
     const matchYM = str.match(/^(\d{4})-(\d{2})$/);
     if (matchYM) {
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return (months[month - 1] || '') + ' ' + year;
     }
-    
+
     return str;
   }
 
@@ -142,17 +142,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (groupYear.includes('-')) return 0;
     const dateStr = event.dateLabel || event.year;
     if (!dateStr) return 0;
-    
+
     const dateParsed = Date.parse(dateStr);
     if (!isNaN(dateParsed)) {
       return new Date(dateParsed).getMonth();
     }
-    
+
     const matchYM = dateStr.match(/^\d{4}-(\d{2})$/);
     if (matchYM) {
       return parseInt(matchYM[1], 10) - 1;
     }
-    
+
     return 0;
   }
 
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear previous track labels if they exist
     const oldLabels = timelineCanvas.querySelectorAll('.track-label');
     oldLabels.forEach(el => el.remove());
-    
+
     // Reset spotlight navigation state
     timelineItems = [];
     activeIndex = -1;
@@ -521,14 +521,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Determine the merge point
     const preMergeYears = yearPositions.filter(yp => parseInt(yp.year, 10) < mergeYearOnly);
     const postMergeYears = yearPositions.filter(yp => parseInt(yp.year, 10) >= mergeYearOnly);
-    
+
     let x_pre_merge_end = layout.startX;
     let x_post_merge_start = canvasWidth;
 
     if (preMergeYears.length > 0) {
       x_pre_merge_end = preMergeYears[preMergeYears.length - 1].xEnd;
     }
-    
+
     if (postMergeYears.length > 0) {
       x_post_merge_start = postMergeYears[0].xStart;
     }
@@ -755,25 +755,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (labelCreator && labelPersona) {
       const scrollLeft = timelineWindow.scrollLeft;
       const isMobile = window.innerWidth < 600;
-      
+
       const labelLeft = isMobile ? 10 : 15;
       const limitOffset = isMobile ? 100 : 150;
-      
+
       // Calculate independent sticky X for Track 1
       let label1X = Math.max(labelStart1, scrollLeft + labelLeft);
       label1X = Math.min(label1X, x_meeting - limitOffset);
-      
+
       // Calculate independent sticky X for Track 2
       let label2X = Math.max(labelStart2, scrollLeft + labelLeft);
       label2X = Math.min(label2X, x_meeting - limitOffset);
-      
+
       // Position the DOM labels
       labelCreator.style.left = `${label1X}px`;
       labelPersona.style.left = `${label2X}px`;
-      
+
       const label1Width = labelCreator.offsetWidth || 90;
       const label2Width = labelPersona.offsetWidth || 90;
-      
+
       // Update SVG mask coordinates dynamically
       let x1_1 = label1X + label1Width + 5;
       let x2_1 = label1X + label1Width + 35;
@@ -781,20 +781,20 @@ document.addEventListener('DOMContentLoaded', () => {
         x1_1 = 0;
         x2_1 = 0;
       }
-      
+
       let x1_2 = label2X + label2Width + 5;
       let x2_2 = label2X + label2Width + 35;
       if (x1_2 <= startX2) {
         x1_2 = 0;
         x2_2 = 0;
       }
-      
+
       const grad1 = document.getElementById('track1-grad');
       if (grad1) {
         grad1.setAttribute('x1', x1_1.toString());
         grad1.setAttribute('x2', x2_1.toString());
       }
-      
+
       const grad2 = document.getElementById('track2-grad');
       if (grad2) {
         grad2.setAttribute('x1', x1_2.toString());
@@ -813,20 +813,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (index >= 0 && index < timelineItems.length) {
       activeIndex = index;
       const activeItem = timelineItems[activeIndex];
-      
+
       // Highlight current item
       activeItem.element.classList.add('highlighted');
       timelineElements.classList.add('has-highlighted');
-      
+
       // Calculate centering scroll position
       const viewportWidth = timelineWindow.clientWidth;
       let itemCenter = activeItem.element.offsetLeft;
       if (activeItem.type === 'card') {
         itemCenter += activeItem.element.offsetWidth / 2;
       }
-      
+
       const targetScrollLeft = itemCenter - viewportWidth / 2;
-      
+
       timelineWindow.scroll({
         left: targetScrollLeft,
         behavior: 'smooth'
@@ -874,13 +874,13 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const x = e.pageX;
     const y = e.pageY;
-    
+
     // Check if user dragged beyond threshold (5px)
     const dist = Math.sqrt((x - startMouseX) ** 2 + (y - startMouseY) ** 2);
     if (dist > 5) {
       dragMoved = true;
     }
-    
+
     const walk = (x - startMouseX) * 1.5;
     timelineWindow.scrollLeft = scrollStartLeft - walk;
   });
@@ -964,7 +964,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Navigation Buttons (Arrows) - Sequential Pinning
   btnPrev.addEventListener('click', () => {
     if (timelineItems.length === 0) return;
-    
+
     let newIndex;
     if (activeIndex === -1) {
       newIndex = getFirstVisibleIndex();
@@ -979,7 +979,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnNext.addEventListener('click', () => {
     if (timelineItems.length === 0) return;
-    
+
     let newIndex;
     if (activeIndex === -1) {
       newIndex = getFirstVisibleIndex();
@@ -1046,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
       if (timelineItems.length === 0) return;
-      
+
       let newIndex;
       if (activeIndex === -1) {
         newIndex = getFirstVisibleIndex();
@@ -1060,7 +1060,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       if (timelineItems.length === 0) return;
-      
+
       let newIndex;
       if (activeIndex === -1) {
         newIndex = getFirstVisibleIndex();
