@@ -149,7 +149,7 @@ body {
 .timeline-window {
   background-color: var(--bg-inner);
   border: none;
-  border-top: 1px solid var(--border-color);
+  border: 0.5px solid var(--border-color);
   border-radius: 26px 26px 24px 24px;
   flex-grow: 1;
   height: 760px;
@@ -377,7 +377,7 @@ body {
   }
 
   .timeline-window {
-    height: 520px;
+    height: 420px;
   }
 
 
