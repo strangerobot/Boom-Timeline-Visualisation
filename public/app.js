@@ -17,25 +17,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Dynamic layout calculator based on screen width/height
   function getLayout(windowHeight) {
-    const isMobile = window.innerWidth < 768;
+    const isMobile = window.innerWidth < 600;
     if (isMobile) {
-      const cardWidth = 230;
-      const colSpacing = 240; // 10px gap between cards
-      const yearGap = 20;
-      const startX = 40;
-      const colStartPadding = 60;
-      const xLabelOffset = 25;
+      const cardWidth = 160;
+      const colSpacing = 170; // 10px gap between cards
+      const yearGap = 15;
+      const startX = 20;
+      const colStartPadding = 45;
+      const xLabelOffset = 15;
 
       const usableHeight = windowHeight - 40;
-      const centerY = 20 + usableHeight / 2;
-      const trackOffset = Math.min(105, Math.max(82, usableHeight * 0.16));
+      const centerY = (usableHeight / 2) - 10;
+      const trackOffset = Math.min(85, Math.max(70, usableHeight * 0.15));
       const track1Y = centerY - trackOffset;
       const track2Y = centerY + trackOffset;
       
-      const cardTop1 = 10;
-      const cardTop2 = centerY + trackOffset + Math.min(50, Math.max(30, usableHeight * 0.06));
-      const cardTopMerged = centerY - 57;
-      const cardHeightMergedMobile = 220;
+      const cardTop1 = track1Y - 15 - 170; // 15px gap above the track line (assumes card height of 170px)
+      const cardTop2 = track2Y + 15;        // 15px gap below the track line
+      const cardTopMerged = centerY - 42;   // Centered (card height is 84px)
+      const cardHeightMergedMobile = 170;
       const cardTopPostMerge = centerY - (cardHeightMergedMobile / 2);
 
       return {
@@ -51,7 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
         yearGap,
         startX,
         colStartPadding,
-        xLabelOffset
+        xLabelOffset,
+        cardGap: 15
       };
     } else {
       const centerY = windowHeight / 2;
@@ -61,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const gap = 30;
       const track1Y = cardTopMerged - gap;
       const track2Y = cardTopMerged + 115 + gap;
-      const conn = Math.min(45, Math.max(15, (windowHeight - 500) * 0.2));
+      const conn = Math.min(45, Math.max(15, (windowHeight - 500) * 0.2)) * 1.2;
       const cardTop1 = track1Y - conn - 181;
       const cardTop2 = track2Y + conn;
 
@@ -78,7 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
         yearGap: 30,
         startX: 70,
         colStartPadding: 70,
-        xLabelOffset: 35
+        xLabelOffset: 35,
+        cardGap: conn
       };
     }
 
@@ -161,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (labelCreator && labelPersona) {
       labelWidth = Math.max(labelCreator.offsetWidth, labelPersona.offsetWidth) || 90;
     }
-    const isMobile = window.innerWidth < 768;
+    const isMobile = window.innerWidth < 600;
     const labelX = Math.max(isMobile ? 15 : 65, scrollLeft + (isMobile ? 10 : 15));
     const maskEnd = labelX + labelWidth + 35;
 
@@ -385,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Compute column offsets dynamically using a greedy constraint solver
       const colXOffsets = [];
-      const baseSlotSpacing = window.innerWidth < 768 ? 8 : 12; // Highly condensed spacing per month (in pixels)
+      const baseSlotSpacing = window.innerWidth < 600 ? 8 : 12; // Highly condensed spacing per month (in pixels)
       const firstColTime = columns.length > 0 ? getNumericValue(columns[0][0].dateLabel || columns[0][0].year) : 0;
 
       columns.forEach((colEvents, colIdx) => {
@@ -446,7 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
               });
             } else if (event.track === 1) {
               // Track 1 Card
-              element = renderCard(event, colX, layout.cardTop1, 1);
+              element = renderCard(event, colX, null, 1, layout.track1Y - layout.cardGap);
               cardPlacements.push({ element, track: 1, x: colX, y: layout.cardTop1 });
               timelineItems.push({
                 element,
@@ -560,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
       startX2 = layout.startX;
     }
 
-    const isMobile = window.innerWidth < 768;
+    const isMobile = window.innerWidth < 600;
     const initialLabelX = isMobile ? 15 : 65;
     const labelLeftOffset = layout.startX - initialLabelX;
     labelStart1 = startX1 - labelLeftOffset;
@@ -594,11 +596,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Card Rendering Helper
-  function renderCard(event, x, y, trackType) {
+  function renderCard(event, x, y, trackType, bottomVal) {
     const card = document.createElement('div');
     card.className = `timeline-card track-${trackType}`;
     card.style.left = `${x}px`;
-    card.style.top = `${y}px`;
+    if (bottomVal !== undefined && bottomVal !== null) {
+      card.style.bottom = `calc(100% - ${bottomVal}px)`;
+    } else {
+      card.style.top = `${y}px`;
+    }
 
     const title = document.createElement('h3');
     title.className = 'card-title';
@@ -722,17 +728,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const h = p.element.offsetHeight;
       const w = p.element.offsetWidth;
       const cx = p.x + w / 2;
+      const actualTop = p.element.offsetTop;
 
       if (p.track === 1) {
         svgLines += `
-          <line x1="${cx}" y1="${p.y + h}" x2="${cx}" y2="${layout.track1Y}"
+          <line x1="${cx}" y1="${actualTop + h}" x2="${cx}" y2="${layout.track1Y}"
                 stroke="var(--track1-color)"
                 stroke-width="1.5"
                 mask="url(#track1-mask)"/>
         `;
       } else if (p.track === 2) {
         svgLines += `
-          <line x1="${cx}" y1="${p.y}" x2="${cx}" y2="${layout.track2Y}"
+          <line x1="${cx}" y1="${actualTop}" x2="${cx}" y2="${layout.track2Y}"
                 stroke="var(--track2-color)"
                 stroke-width="1.5"
                 mask="url(#track2-mask)"/>
@@ -747,7 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateStickyLabelsAndMask() {
     if (labelCreator && labelPersona) {
       const scrollLeft = timelineWindow.scrollLeft;
-      const isMobile = window.innerWidth < 768;
+      const isMobile = window.innerWidth < 600;
       
       const labelLeft = isMobile ? 10 : 15;
       const limitOffset = isMobile ? 100 : 150;
