@@ -126,7 +126,7 @@ function parseTimelineCSV(filePath) {
 
 // API Endpoint to get the parsed timeline config and events
 app.get('/api/timeline', (req, res) => {
-  const csvPath = path.join(__dirname, 'timeline.csv');
+  const csvPath = path.join(__dirname, 'public', 'timeline.csv');
   const parsedData = parseTimelineCSV(csvPath);
   res.json(parsedData);
 });
