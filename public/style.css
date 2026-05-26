@@ -3,7 +3,7 @@
   --track1-color: #bc0000;
   --track2-color: #a47e03;
   --merged-color: #5d5745;
-  --milestone-color: #007179;
+  --milestone-color: #5a5a5a;
 
   --bg-outer: #f2eee9;
   --bg-inner: #faf6f0;
@@ -40,6 +40,10 @@ body {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Timeline Container (Outer Window Frame) */
@@ -219,6 +223,10 @@ body {
   pointer-events: none;
   left: 65px;
   z-index: 10;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .track-label.creator {
@@ -249,18 +257,16 @@ body {
 .timeline-card {
   position: absolute;
   background-color: #ffffff;
-  border: 1px solid var(--border-color);
+  border: 1.5px solid rgba(0, 0, 0, 0.22);
   border-radius: 20px;
-  width: 240px;
+  width: 320px;
   min-height: 120px;
   padding: 20px 18px 18px 18px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  box-shadow: var(--shadow-subtle);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, opacity 0.4s ease, filter 0.4s ease;
-  user-select: text;
-  /* Allow users to copy text from cards */
+  box-shadow: none;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, filter 0.4s ease;
   cursor: default;
 }
 
@@ -275,9 +281,20 @@ body {
   margin-top: 2px;
 }
 
+.timeline-card.pre-merge-tech {
+  border-radius: 0;
+  box-shadow: none;
+  background-color: var(--bg-inner);
+}
+
+.timeline-card.pre-merge-tech:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 /* Taller sizing for merged cards after the merge */
 .timeline-card.track-merged {
-  min-height: 200px;
+  min-height: auto;
   padding: 24px 20px 20px 20px;
   gap: 8px;
 }
@@ -285,7 +302,7 @@ body {
 
 .timeline-card:hover {
   transform: scale(1.01);
-  box-shadow: var(--shadow-hover);
+  box-shadow: none;
 }
 
 /* Card inner text elements */
@@ -313,6 +330,15 @@ body {
   color: var(--merged-color);
 }
 
+.timeline-card.track-merged .card-description {
+  color: var(--merged-color);
+}
+
+.timeline-card.track-merged .card-date {
+  color: var(--merged-color);
+  opacity: 0.8;
+}
+
 .card-date {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12px;
@@ -326,6 +352,7 @@ body {
   color: var(--text-black);
   line-height: 1.5;
   margin-top: 4px;
+  white-space: pre-line;
 }
 
 .timeline-elements.has-highlighted .timeline-card:not(.highlighted) {
@@ -347,22 +374,22 @@ body {
 
 .timeline-card.highlighted.track-1 {
   border-color: var(--track1-color);
-  box-shadow: var(--shadow-hover);
+  box-shadow: none;
 }
 
 .timeline-card.highlighted.track-2 {
   border-color: var(--track2-color);
-  box-shadow: var(--shadow-hover);
+  box-shadow: none;
 }
 
 .timeline-card.highlighted.track-3 {
   border-color: var(--milestone-color);
-  box-shadow: var(--shadow-hover);
+  box-shadow: none;
 }
 
 .timeline-card.highlighted.track-merged {
   border-color: var(--merged-color);
-  box-shadow: var(--shadow-hover);
+  box-shadow: none;
 }
 
 @media (max-width: 600px) {
@@ -414,7 +441,7 @@ body {
   }
 
   .timeline-card {
-    width: 200px;
+    width: 260px;
     min-height: 115px;
     padding: 12px;
     border-radius: 12px;
@@ -427,7 +454,7 @@ body {
   }
 
   .timeline-card.track-merged {
-    min-height: 170px;
+    min-height: auto;
     padding: 12px;
     gap: 6px;
   }

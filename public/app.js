@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function getLayout(windowHeight) {
     const isMobile = window.innerWidth < 600;
     if (isMobile) {
-      const cardWidth = 200;
-      const colSpacing = 210; // 10px gap between cards
+      const cardWidth = 260;
+      const colSpacing = 272; // maintaining gap spacing
       const yearGap = 15;
       const startX = 20;
       const colStartPadding = 45;
@@ -74,8 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
         cardTop2,
         cardTopMerged,
         cardTopPostMerge,
-        cardWidth: 232,
-        colSpacing: 245, // 13px gap between cards
+        cardWidth: 320,
+        colSpacing: 335, // maintaining gap spacing
         yearGap: 30,
         startX: 70,
         colStartPadding: 70,
@@ -199,37 +199,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let cachedTimelineData = null;
 
-  // CSV parsing helpers (mirrors server.js logic)
-  function parseCSVLine(line) {
-    const result = [];
-    let current = '';
+  // CSV parsing helpers
+  function parseTimelineCSV(csvText) {
+    const data = { config: {}, events: [] };
+    const rows = [];
+    let currentRow = [];
+    let currentField = '';
     let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
+
+    for (let i = 0; i < csvText.length; i++) {
+      const char = csvText[i];
+      const nextChar = csvText[i + 1];
+
       if (char === '"') {
-        inQuotes = !inQuotes;
+        if (inQuotes && nextChar === '"') {
+          currentField += '"';
+          i++; // skip next quote
+        } else {
+          inQuotes = !inQuotes;
+        }
       } else if (char === ',' && !inQuotes) {
-        result.push(current.trim());
-        current = '';
+        currentRow.push(currentField.trim());
+        currentField = '';
+      } else if ((char === '\r' || char === '\n') && !inQuotes) {
+        if (char === '\r' && nextChar === '\n') {
+          i++; // skip \n
+        }
+        currentRow.push(currentField.trim());
+        if (currentRow.length > 0 && currentRow.some(field => field !== '')) {
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        currentField = '';
       } else {
-        current += char;
+        currentField += char;
       }
     }
-    result.push(current.trim());
-    return result;
-  }
+    if (currentField || currentRow.length > 0) {
+      currentRow.push(currentField.trim());
+      if (currentRow.some(field => field !== '')) {
+        rows.push(currentRow);
+      }
+    }
 
-  function parseTimelineCSV(csvText) {
-    const lines = csvText.split(/\r?\n/);
-    const data = { config: {}, events: [] };
-    if (lines.length === 0) return data;
+    if (rows.length === 0) return data;
+    const headers = rows[0];
 
-    const headers = parseCSVLine(lines[0]);
-
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      const values = parseCSVLine(line);
+    for (let i = 1; i < rows.length; i++) {
+      const values = rows[i];
       const row = {};
       headers.forEach((header, index) => {
         row[header] = values[index] || '';
@@ -259,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return data;
   }
+
 
   // Fetch timeline.csv directly (works on Netlify static hosting and local Express)
   fetch('/timeline.csv')
@@ -345,22 +363,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Sort all events of the year chronologically
       const sortedEvents = yearEvents.slice().sort((a, b) => {
-        const timeA = getNumericValue(a.dateLabel || a.year);
-        const timeB = getNumericValue(b.dateLabel || b.year);
+        const timeA = getNumericValue(a.year);
+        const timeB = getNumericValue(b.year);
         return timeA - timeB;
       });
 
       // Group events into columns where they can share a column if they have the exact same date and different tracks
       const columns = [];
       sortedEvents.forEach(event => {
-        const eventTime = getNumericValue(event.dateLabel || event.year);
+        const eventTime = getNumericValue(event.year);
         const isPreMergeEvent = getNumericValue(event.year) < mergeVal;
         const eventTrack = isPreMergeEvent ? event.track : 'merged';
 
         let placed = false;
         for (let colIdx = 0; colIdx < columns.length; colIdx++) {
           const colEvents = columns[colIdx];
-          const colTime = getNumericValue(colEvents[0].dateLabel || colEvents[0].year);
+          const colTime = getNumericValue(colEvents[0].year);
 
           const sameTime = Math.abs(eventTime - colTime) < 0.001;
           const trackUsed = colEvents.some(e => {
@@ -388,17 +406,17 @@ document.addEventListener('DOMContentLoaded', () => {
       // Compute column offsets dynamically using a greedy constraint solver
       const colXOffsets = [];
       const baseSlotSpacing = window.innerWidth < 600 ? 8 : 12; // Highly condensed spacing per month (in pixels)
-      const firstColTime = columns.length > 0 ? getNumericValue(columns[0][0].dateLabel || columns[0][0].year) : 0;
+      const firstColTime = columns.length > 0 ? getNumericValue(columns[0][0].year) : 0;
 
       columns.forEach((colEvents, colIdx) => {
-        const timeI = getNumericValue(colEvents[0].dateLabel || colEvents[0].year);
+        const timeI = getNumericValue(colEvents[0].year);
         const t_i = (timeI - firstColTime) * 12; // Time difference in months
         let x_i = t_i * baseSlotSpacing;
 
         // Verify collision against all previous columns in the same year block
         for (let j = 0; j < colIdx; j++) {
           const prevColEvents = columns[j];
-          const timeJ = getNumericValue(prevColEvents[0].dateLabel || prevColEvents[0].year);
+          const timeJ = getNumericValue(prevColEvents[0].year);
           const t_j = (timeJ - firstColTime) * 12;
 
           // Determine if columns share a track
@@ -438,12 +456,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (event.track === 3) {
               // Track 3 Card (Milestone)
               element = renderCard(event, colX, layout.cardTopMerged, 3);
+              element.classList.add('pre-merge-tech');
               cardPlacements.push({ element, track: 3, x: colX, y: layout.cardTopMerged });
               timelineItems.push({
                 element,
                 type: 'card',
                 centerX: centerPos,
-                dateValue: getNumericValue(event.dateLabel || event.year),
+                dateValue: getNumericValue(event.year),
                 track: 3
               });
             } else if (event.track === 1) {
@@ -454,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 element,
                 type: 'card',
                 centerX: centerPos,
-                dateValue: getNumericValue(event.dateLabel || event.year),
+                dateValue: getNumericValue(event.year),
                 track: 1
               });
             } else if (event.track === 2) {
@@ -465,21 +484,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 element,
                 type: 'card',
                 centerX: centerPos,
-                dateValue: getNumericValue(event.dateLabel || event.year),
+                dateValue: getNumericValue(event.year),
                 track: 2
               });
             }
           } else {
             // Merged Card
-            element = renderCard(event, colX, layout.cardTopPostMerge, 'merged');
-            cardPlacements.push({ element, track: 'merged', x: colX, y: layout.cardTopPostMerge });
-            timelineItems.push({
-              element,
-              type: 'card',
-              centerX: centerPos,
-              dateValue: getNumericValue(event.dateLabel || event.year),
-              track: 'merged'
-            });
+            if (event.track === 3) {
+              element = renderCard(event, colX, layout.cardTopMerged, 3);
+              if (event.title === "Sora Shut Down") {
+                element.classList.add('pre-merge-tech');
+              }
+              cardPlacements.push({ element, track: 3, x: colX, y: layout.cardTopMerged });
+              timelineItems.push({
+                element,
+                type: 'card',
+                centerX: centerPos,
+                dateValue: getNumericValue(event.year),
+                track: 3
+              });
+            } else {
+              element = renderCard(event, colX, layout.cardTopPostMerge, 'merged');
+              cardPlacements.push({ element, track: 'merged', x: colX, y: layout.cardTopPostMerge });
+              timelineItems.push({
+                element,
+                type: 'card',
+                centerX: centerPos,
+                dateValue: getNumericValue(event.year),
+                track: 'merged'
+              });
+            }
           }
 
         });
@@ -851,12 +885,25 @@ document.addEventListener('DOMContentLoaded', () => {
   let scrollStartLeft;
 
   timelineWindow.addEventListener('mousedown', (e) => {
+    // If the click starts inside a card, let the browser handle standard text selection/clicks inside it
+    if (e.target.closest('.timeline-card')) {
+      isDown = true;
+      dragMoved = false;
+      startMouseX = e.pageX;
+      startMouseY = e.pageY;
+      scrollStartLeft = timelineWindow.scrollLeft;
+      return;
+    }
+
     isDown = true;
     dragMoved = false;
     timelineWindow.style.cursor = 'grabbing';
     startMouseX = e.pageX;
     startMouseY = e.pageY;
     scrollStartLeft = timelineWindow.scrollLeft;
+    
+    // Prevent default browser action (like starting text selection)
+    e.preventDefault();
   });
 
   timelineWindow.addEventListener('mouseleave', () => {
