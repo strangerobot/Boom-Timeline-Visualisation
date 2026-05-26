@@ -8,27 +8,6 @@ const PORT = process.env.PORT || 3000;
 // Serve static assets from public folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Helper to parse standard CSV line with quotes support
-function parseCSVLine(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-  
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === ',' && !inQuotes) {
-      result.push(current.trim());
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  result.push(current.trim());
-  return result;
-}
-
 // Helper to convert date keys (e.g., 2018, 2026-06, "June 2026") into numeric value for sorting
 function getNumericValue(key) {
   if (!key) return 0;
@@ -56,26 +35,60 @@ function getNumericValue(key) {
   return parseFloat(str) || 0;
 }
 
-// Custom CSV Parser
+// Custom CSV Parser supporting quotes and multi-line values
 function parseTimelineCSV(filePath) {
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const lines = content.split(/\r?\n/);
     const data = {
       config: {},
       events: []
     };
     
-    if (lines.length === 0) return data;
+    const rows = [];
+    let currentRow = [];
+    let currentField = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i];
+      const nextChar = content[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          currentField += '"';
+          i++; // skip next quote
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        currentRow.push(currentField.trim());
+        currentField = '';
+      } else if ((char === '\r' || char === '\n') && !inQuotes) {
+        if (char === '\r' && nextChar === '\n') {
+          i++; // skip \n
+        }
+        currentRow.push(currentField.trim());
+        if (currentRow.length > 0 && currentRow.some(field => field !== '')) {
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        currentField = '';
+      } else {
+        currentField += char;
+      }
+    }
+    if (currentField || currentRow.length > 0) {
+      currentRow.push(currentField.trim());
+      if (currentRow.some(field => field !== '')) {
+        rows.push(currentRow);
+      }
+    }
+
+    if (rows.length === 0) return data;
+    const headers = rows[0];
     
-    // Header row is index 0
-    const headers = parseCSVLine(lines[0]);
-    
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      
-      const values = parseCSVLine(line);
+    for (let i = 1; i < rows.length; i++) {
+      const values = rows[i];
       const row = {};
       headers.forEach((header, index) => {
         row[header] = values[index] || '';
