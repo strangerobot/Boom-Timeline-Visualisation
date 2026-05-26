@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let timelineItems = [];
   let activeIndex = -1;
   let dragMoved = false;
+  let finalEventId = null;
 
   // Dynamic layout calculator based on screen width/height
   function getLayout(windowHeight) {
@@ -28,12 +29,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const usableHeight = windowHeight - 40;
       const centerY = usableHeight / 2;
-      const trackOffset = Math.min(80, Math.max(48, usableHeight * 0.13));
+      const trackOffset = Math.min(100, Math.max(60, usableHeight * 0.1625));
       const track1Y = centerY - trackOffset;
       const track2Y = centerY + trackOffset;
 
-      const cardTop1 = track1Y - 15 - 170; // 15px gap above the track line (assumes card height of 170px)
-      const cardTop2 = track2Y + 15;        // 15px gap below the track line
+      const cardTop1 = track1Y - 30 - 170; // 30px gap above the track line (assumes card height of 170px)
+      const cardTop2 = track2Y + 30;        // 30px gap below the track line
       const cardTopMerged = centerY - 42;   // Centered (card height is 84px)
       const cardHeightMergedMobile = 170;
       const cardTopPostMerge = centerY - (cardHeightMergedMobile / 2);
@@ -52,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startX,
         colStartPadding,
         xLabelOffset,
-        cardGap: 15
+        cardGap: 30
       };
     } else {
       const centerY = windowHeight / 2;
@@ -305,6 +306,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderTimeline(data) {
     const { config, events } = data;
 
+    // Dynamically set the ID of the final event (the last event in chronological order)
+    finalEventId = events.length > 0 ? events[events.length - 1].id : null;
+
     // Get dynamic layout constants
     const layout = getLayout(timelineWindow.clientHeight);
 
@@ -348,10 +352,24 @@ document.addEventListener('DOMContentLoaded', () => {
       eventsByYear[yearKey].push(event);
     });
 
+    // Calculate which cards are pre-merge vs post-merge based on the merge boundary IDs
+    const mergeAfterId = config.merge_after_event_id || '31';
+    const mergeBeforeId = config.merge_before_event_id || '32';
+    const mergeAfterIndex = events.findIndex(e => e.id === mergeAfterId);
+    const mergeBeforeIndex = events.findIndex(e => e.id === mergeBeforeId);
+
+    events.forEach((event, idx) => {
+      if (mergeAfterIndex !== -1) {
+        event.isPreMerge = (idx <= mergeAfterIndex);
+      } else if (mergeBeforeIndex !== -1) {
+        event.isPreMerge = (idx < mergeBeforeIndex);
+      } else {
+        event.isPreMerge = true;
+      }
+    });
+
     // Sort unique 4-digit years chronologically
     const years = Object.keys(eventsByYear).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
-    const mergeVal = getNumericValue(config.merge_year || '2022');
-    const mergeYearOnly = parseInt((config.merge_year || '2022').split('-')[0], 10);
 
     let xOffset = layout.startX;
     const cardPlacements = [];
@@ -372,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const columns = [];
       sortedEvents.forEach(event => {
         const eventTime = getNumericValue(event.year);
-        const isPreMergeEvent = getNumericValue(event.year) < mergeVal;
+        const isPreMergeEvent = event.isPreMerge;
         const eventTrack = isPreMergeEvent ? event.track : 'merged';
 
         let placed = false;
@@ -382,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const sameTime = Math.abs(eventTime - colTime) < 0.001;
           const trackUsed = colEvents.some(e => {
-            const isPreMergeE = getNumericValue(e.year) < mergeVal;
+            const isPreMergeE = e.isPreMerge;
             const t = isPreMergeE ? e.track : 'merged';
             return t === eventTrack;
           });
@@ -421,8 +439,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // Determine if columns share a track
           let shareTrack = false;
-          const isPreMergeEventI = getNumericValue(colEvents[0].year) < mergeVal;
-          const isPreMergeEventJ = getNumericValue(prevColEvents[0].year) < mergeVal;
+          const isPreMergeEventI = colEvents[0].isPreMerge;
+          const isPreMergeEventJ = prevColEvents[0].isPreMerge;
 
           if (!isPreMergeEventI || !isPreMergeEventJ) {
             shareTrack = true; // post-merge: everything is on the same track (merged)
@@ -451,13 +469,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         colEvents.forEach(event => {
           let element;
-          const isPreMergeEvent = getNumericValue(event.year) < mergeVal;
+          const isPreMergeEvent = event.isPreMerge;
           if (isPreMergeEvent) {
             if (event.track === 3) {
               // Track 3 Card (Milestone)
               element = renderCard(event, colX, layout.cardTopMerged, 3);
               element.classList.add('pre-merge-tech');
-              cardPlacements.push({ element, track: 3, x: colX, y: layout.cardTopMerged });
+              cardPlacements.push({ element, track: 3, x: colX, y: layout.cardTopMerged, isPreMerge: event.isPreMerge, id: event.id });
               timelineItems.push({
                 element,
                 type: 'card',
@@ -468,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (event.track === 1) {
               // Track 1 Card
               element = renderCard(event, colX, null, 1, layout.track1Y - layout.cardGap);
-              cardPlacements.push({ element, track: 1, x: colX, y: layout.cardTop1 });
+              cardPlacements.push({ element, track: 1, x: colX, y: layout.cardTop1, isPreMerge: event.isPreMerge, id: event.id });
               timelineItems.push({
                 element,
                 type: 'card',
@@ -479,7 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (event.track === 2) {
               // Track 2 Card
               element = renderCard(event, colX, layout.cardTop2, 2);
-              cardPlacements.push({ element, track: 2, x: colX, y: layout.cardTop2 });
+              cardPlacements.push({ element, track: 2, x: colX, y: layout.cardTop2, isPreMerge: event.isPreMerge, id: event.id });
               timelineItems.push({
                 element,
                 type: 'card',
@@ -495,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
               if (event.title === "Sora Shut Down") {
                 element.classList.add('pre-merge-tech');
               }
-              cardPlacements.push({ element, track: 3, x: colX, y: layout.cardTopMerged });
+              cardPlacements.push({ element, track: 3, x: colX, y: layout.cardTopMerged, isPreMerge: event.isPreMerge, id: event.id });
               timelineItems.push({
                 element,
                 type: 'card',
@@ -505,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
               });
             } else {
               element = renderCard(event, colX, layout.cardTopPostMerge, 'merged');
-              cardPlacements.push({ element, track: 'merged', x: colX, y: layout.cardTopPostMerge });
+              cardPlacements.push({ element, track: 'merged', x: colX, y: layout.cardTopPostMerge, isPreMerge: event.isPreMerge, id: event.id });
               timelineItems.push({
                 element,
                 type: 'card',
@@ -514,6 +532,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 track: 'merged'
               });
             }
+          }
+
+          if (event.id === finalEventId) {
+            element.style.bottom = 'auto';
+            element.style.top = `${layout.centerY}px`;
+            element.style.transform = 'translateY(-50%)';
           }
 
         });
@@ -549,52 +573,50 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Calculate canvas width with padding at the end
-    const canvasWidth = Math.max(xOffset, window.innerWidth);
+    const canvasWidth = Math.max(xOffset + 300, window.innerWidth);
     timelineCanvas.style.width = `${canvasWidth}px`;
 
-    // Determine the merge point
-    const preMergeYears = yearPositions.filter(yp => parseInt(yp.year, 10) < mergeYearOnly);
-    const postMergeYears = yearPositions.filter(yp => parseInt(yp.year, 10) >= mergeYearOnly);
+    // Determine the merge point based on the specific merge cards
+    const preMergePlacements = cardPlacements.filter(p => p.isPreMerge && (p.track === 1 || p.track === 2));
+    const postMergePlacements = cardPlacements.filter(p => !p.isPreMerge);
+
+    const afterPlacement = cardPlacements.find(p => p.id === mergeAfterId);
+    const beforePlacement = cardPlacements.find(p => p.id === mergeBeforeId);
 
     let x_pre_merge_end = layout.startX;
     let x_post_merge_start = canvasWidth;
 
-    if (preMergeYears.length > 0) {
-      x_pre_merge_end = preMergeYears[preMergeYears.length - 1].xEnd;
+    if (afterPlacement) {
+      x_pre_merge_end = afterPlacement.x + layout.cardWidth;
+    } else if (preMergePlacements.length > 0) {
+      x_pre_merge_end = Math.max(...preMergePlacements.map(p => p.x + layout.cardWidth));
     }
 
-    if (postMergeYears.length > 0) {
-      x_post_merge_start = postMergeYears[0].xStart;
+    if (beforePlacement) {
+      x_post_merge_start = beforePlacement.x;
+    } else if (postMergePlacements.length > 0) {
+      x_post_merge_start = Math.min(...postMergePlacements.map(p => p.x));
     }
 
-    if (preMergeYears.length > 0 && postMergeYears.length > 0) {
+    if (x_pre_merge_end > layout.startX && x_post_merge_start < canvasWidth) {
       x_meeting = (x_pre_merge_end + x_post_merge_start) / 2;
-    } else if (postMergeYears.length > 0) {
+    } else if (x_post_merge_start < canvasWidth) {
       x_meeting = layout.startX;
     } else {
       x_meeting = canvasWidth;
     }
 
-    // Set outer-scope track start coordinates dynamically from the first pre-merge events
-    const t1Events = events.filter(e => parseInt(e.track, 10) === 1 && getNumericValue(e.year) < mergeVal);
-    if (t1Events.length > 0) {
-      const years1 = t1Events.map(e => e.year.split('-')[0]);
-      const minYear1 = years1.reduce((min, y) => parseInt(y, 10) < parseInt(min, 10) ? y : min, years1[0]);
-      const yPos = yearPositions.find(yp => yp.year === minYear1);
-      startX1 = yPos ? yPos.xStart : layout.startX;
-    } else {
-      startX1 = layout.startX;
-    }
+    // Set outer-scope track start coordinates dynamically 100px before the first pre-merge card
+    const p1 = cardPlacements.find(p => p.isPreMerge && p.track === 1);
+    const firstCardX1 = p1 ? p1.x : layout.startX;
+    startX1 = firstCardX1 - 100;
 
-    const t2Events = events.filter(e => parseInt(e.track, 10) === 2 && getNumericValue(e.year) < mergeVal);
-    if (t2Events.length > 0) {
-      const years2 = t2Events.map(e => e.year.split('-')[0]);
-      const minYear2 = years2.reduce((min, y) => parseInt(y, 10) < parseInt(min, 10) ? y : min, years2[0]);
-      const yPos = yearPositions.find(yp => yp.year === minYear2);
-      startX2 = yPos ? yPos.xStart : layout.startX;
-    } else {
-      startX2 = layout.startX;
-    }
+    const p2 = cardPlacements.find(p => p.isPreMerge && p.track === 2);
+    const firstCardX2 = p2 ? p2.x : layout.startX;
+    startX2 = firstCardX2 - 100;
+
+    const finalCardPlacement = cardPlacements.find(p => p.id === finalEventId);
+    const x_line_end = finalCardPlacement ? (finalCardPlacement.x + layout.cardWidth) : canvasWidth;
 
     const isMobile = window.innerWidth < 600;
     const initialLabelX = isMobile ? 15 : 65;
@@ -609,7 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Now render SVG tracks and connectors (needs cards loaded in DOM to measure heights)
     const initDraw = () => {
-      drawSVGTracks(layout, canvasWidth, x_pre_merge_end, x_meeting, preMergeYears.length > 0, postMergeYears.length > 0);
+      drawSVGTracks(layout, x_line_end, x_pre_merge_end, x_meeting, preMergePlacements.length > 0, postMergePlacements.length > 0);
       drawCardConnectors(layout, cardPlacements);
       updateStickyLabelsAndMask();
     };
@@ -633,6 +655,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderCard(event, x, y, trackType, bottomVal) {
     const card = document.createElement('div');
     card.className = `timeline-card track-${trackType}`;
+    if (event.id === finalEventId) {
+      card.classList.add('final-card');
+    }
     card.style.left = `${x}px`;
     if (bottomVal !== undefined && bottomVal !== null) {
       card.style.bottom = `calc(100% - ${bottomVal}px)`;
@@ -737,12 +762,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Merged Track (Dual-colored: Red & Gold parallel threads) - Unmasked
     if (hasPostMerge) {
       unmaskedSvgContent += `
-        <path d="M ${x_meeting} ${layout.centerY - 1.5} L ${canvasWidth - 100} ${layout.centerY - 1.5}"
+        <path d="M ${x_meeting} ${layout.centerY - 1.5} L ${canvasWidth} ${layout.centerY - 1.5}"
               stroke="var(--track1-color)"
               stroke-width="2"
               stroke-linecap="round"
               fill="none"/>
-        <path d="M ${x_meeting} ${layout.centerY + 1.5} L ${canvasWidth - 100} ${layout.centerY + 1.5}"
+        <path d="M ${x_meeting} ${layout.centerY + 1.5} L ${canvasWidth} ${layout.centerY + 1.5}"
               stroke="var(--track2-color)"
               stroke-width="2"
               stroke-linecap="round"

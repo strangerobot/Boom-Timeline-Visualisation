@@ -1,5 +1,6 @@
 Type,ID,Year,Track,Title,Date Label,Description
-config,merge_year,2025-07,,,
+config,merge_after_event_id,31,,,
+config,merge_before_event_id,32,,,
 config,track1_label,"Pratim Bora (The Creator)",,,
 config,track1_color,#bc0000,,,
 config,track2_label,"Babydoll Archi  (The AI Influencer)",,,
