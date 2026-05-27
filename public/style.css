@@ -303,8 +303,6 @@ body {
 .timeline-card.final-card {
   width: 440px;
   padding: 32px 28px;
-  border-width: 2px;
-  border-color: var(--merged-color);
 }
 
 .timeline-card.final-card .card-title {
@@ -495,7 +493,6 @@ body {
   .timeline-card.final-card {
     width: 290px;
     padding: 24px 20px;
-    border-width: 2px;
   }
 
   .timeline-card.final-card .card-title {
