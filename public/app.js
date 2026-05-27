@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const cardTopMerged = centerY - 57;
       const cardHeightMergedDesktop = 260;
       const cardTopPostMerge = centerY - (cardHeightMergedDesktop / 2);
-      const gap = 30;
+      const gap = 65;
       const track1Y = cardTopMerged - gap;
       const track2Y = cardTopMerged + 115 + gap;
       const conn = Math.min(45, Math.max(15, (windowHeight - 500) * 0.2)) * 1.2;
@@ -450,8 +450,12 @@ document.addEventListener('DOMContentLoaded', () => {
             shareTrack = tracksI.some(t => tracksJ.includes(t));
           }
 
+          const prevContainsWide = prevColEvents.some(e => e.title === 'GenAI Today' || e.id === finalEventId);
+          const isMobile = window.innerWidth < 600;
+          const currentSpacing = prevContainsWide ? (isMobile ? layout.colSpacing + 30 : layout.colSpacing + 120) : layout.colSpacing;
+
           if (shareTrack) {
-            x_i = Math.max(x_i, colXOffsets[j] + layout.colSpacing);
+            x_i = Math.max(x_i, colXOffsets[j] + currentSpacing);
           } else {
             x_i = Math.max(x_i, colXOffsets[j] + (t_i - t_j) * baseSlotSpacing);
           }
@@ -536,8 +540,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (event.id === finalEventId) {
             element.style.bottom = 'auto';
-            element.style.top = `${layout.centerY}px`;
-            element.style.transform = 'translateY(-50%)';
           }
 
         });
@@ -631,6 +633,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Now render SVG tracks and connectors (needs cards loaded in DOM to measure heights)
     const initDraw = () => {
+      // Center Track 3 cards and the final card vertically based on their actual offsetHeight
+      cardPlacements.forEach(p => {
+        if (p.track === 3 || p.id === finalEventId) {
+          const h = p.element.offsetHeight;
+          p.element.style.top = `${layout.centerY - h / 2}px`;
+          p.element.style.bottom = 'auto';
+        }
+      });
+
       drawSVGTracks(layout, x_line_end, x_pre_merge_end, x_meeting, preMergePlacements.length > 0, postMergePlacements.length > 0);
       drawCardConnectors(layout, cardPlacements);
       updateStickyLabelsAndMask();
@@ -657,6 +668,9 @@ document.addEventListener('DOMContentLoaded', () => {
     card.className = `timeline-card track-${trackType}`;
     if (event.id === finalEventId) {
       card.classList.add('final-card');
+    }
+    if (event.title === 'GenAI Today') {
+      card.classList.add('final-card', 'pre-merge-tech');
     }
     card.style.left = `${x}px`;
     if (bottomVal !== undefined && bottomVal !== null) {

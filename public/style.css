@@ -322,6 +322,15 @@ body {
   line-height: 1.7;
 }
 
+.timeline-card.final-card.pre-merge-tech {
+  gap: 8px;
+  min-height: auto;
+}
+
+.timeline-card.final-card.pre-merge-tech .card-description {
+  margin-top: 4px;
+}
+
 
 .timeline-card:hover {
   transform: scale(1.01);
@@ -526,5 +535,14 @@ body {
   .year-label {
     font-size: 11px;
     padding: 4px 8px;
+  }
+
+  .timeline-card.final-card.pre-merge-tech {
+    gap: 8px;
+    min-height: auto;
+  }
+
+  .timeline-card.final-card.pre-merge-tech .card-description {
+    margin-top: 4px;
   }
 }
