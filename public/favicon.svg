@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Person silhouette in black -->
+  <circle cx="16" cy="11" r="4.5" fill="#000000" />
+  <path d="M7 26 C7 21, 11 18, 16 18 C21 18, 25 21, 25 26" fill="#000000" />
+  <!-- AI Sparkle in red with a subtle white stroke for clean separation -->
+  <path d="M16 7 L18.5 13.5 L25 16 L18.5 18.5 L16 25 L13.5 18.5 L7 16 L13.5 13.5 Z" fill="#bc0000" stroke="#ffffff" stroke-width="1" stroke-linejoin="round" />
+</svg>
