@@ -96,7 +96,7 @@ body {
 }
 
 .nav-btn {
-  background-color: #e5dacf;
+  background-color: #faf6f0;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   width: 52px;
@@ -118,12 +118,12 @@ body {
 }
 
 .nav-btn:hover {
-  background-color: #d9cbbd;
+  background-color: #f0e6da;
   transform: translateY(-1px);
 }
 
 .nav-btn:active {
-  background-color: #ccbeb0;
+  background-color: #e4d5c3;
   transform: translateY(0);
 }
 
