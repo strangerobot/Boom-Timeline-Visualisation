@@ -82,7 +82,7 @@ You can seamlessly embed this timeline into any external article, blog post, or 
 ```html
 <iframe 
   src="https://timeline-visualisation.yatharthswebsite.workers.dev/" 
-  style="width: 100%; height: 700px; border: none; display: block;" 
+  style="width: 100%; height: 750px; border: none; display: block;" 
   scrolling="no" 
   allow="fullscreen" 
   allowfullscreen
