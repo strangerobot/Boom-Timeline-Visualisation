@@ -1,6 +1,6 @@
-# Timeline of an AI Influencer
+# Boom-Timeline-Visualisation
 
-An interactive, premium merging timeline visualization mapping the storyline of an AI influencer (`Babydoll Archi`) and its creator (`Pratim Bora`). The application features chronological scaling, merging tracks, immersive CSS effects, and interactive elements.
+An interactive, premium merging timeline visualization mapping the storyline of an AI influencer and its creator. The application features chronological scaling, merging tracks, immersive CSS effects, and interactive elements.
 
 ## Table of Contents
 1. [How It Works](#how-it-works)

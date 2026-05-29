@@ -1,5 +1,5 @@
 {
-  "name": "interactive-merging-timeline",
+  "name": "boom-timeline-visualisation",
   "version": "1.0.0",
   "description": "An interactive timeline with merging tracks and dynamic year scaling",
   "main": "server.js",
