@@ -73,6 +73,12 @@ To deploy the dynamic backend server:
 *   Make sure to configure the start script as `npm start`.
 *   The application automatically binds to the `process.env.PORT` variable provided by the host environment.
 
+### 3. Standalone Single-File Deployment (package.html)
+For clients who require an offline-ready, serverless, or highly portable version, the project includes a pre-compiled single-file build:
+*   **Self-Contained**: [package.html](file:///Users/yatharth/Documents/Development/Tattle/Boom%20Visualisations/Timeline%20Visualisation/package.html) bundles all structure, inline styling, JS interaction, inline SVG favicon data, and the raw CSV dataset directly in one file.
+*   **Serverless & Offline-Ready**: It runs instantly when opened directly in any web browser (via `file://` protocol) and bypasses CORS security policies.
+*   **Easy to Embed/Share**: Simply deliver the single `package.html` file to the client to host statically, drop onto a desktop, or load inside an iframe.
+
 ---
 
 ## Embedding the Timeline
