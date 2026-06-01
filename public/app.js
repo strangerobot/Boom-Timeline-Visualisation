@@ -973,6 +973,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 2b. Touch to Scroll (Touchscreen) with momentum/inertia
   let touchStartX = 0;
+  let touchStartY = 0;
+  let isScrollingHorizontal = false;
+  let isScrollingVertical = false;
   let touchScrollStart = 0;
   let touchVelocity = 0;
   let lastTouchX = 0;
@@ -1000,37 +1003,58 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelMomentum();
     const touch = e.touches[0];
     touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
     touchScrollStart = timelineWindow.scrollLeft;
     lastTouchX = touch.clientX;
     lastTouchTime = Date.now();
     touchVelocity = 0;
     dragMoved = false;
+    isScrollingHorizontal = false;
+    isScrollingVertical = false;
   }, { passive: true });
 
   timelineWindow.addEventListener('touchmove', (e) => {
     const touch = e.touches[0];
     const dx = touch.clientX - touchStartX;
-    const dy = touch.clientY - e.touches[0].clientY; // always 0, kept for clarity
-    const absDx = Math.abs(touch.clientX - touchStartX);
-    const absDy = Math.abs(touch.clientY - (e.touches[0].clientY || 0));
+    const dy = touch.clientY - touchStartY;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
 
-    if (absDx > 5) dragMoved = true;
-
-    // Track velocity from recent movement
-    const now = Date.now();
-    const dt = now - lastTouchTime;
-    if (dt > 0) {
-      touchVelocity = -(touch.clientX - lastTouchX) / dt * 16; // normalise to ~60fps frame
+    // Lock scrolling direction once threshold is reached
+    if (!isScrollingHorizontal && !isScrollingVertical) {
+      if (absDx > 8 && absDx > absDy) {
+        isScrollingHorizontal = true;
+      } else if (absDy > 8 && absDy > absDx) {
+        isScrollingVertical = true;
+      }
     }
-    lastTouchX = touch.clientX;
-    lastTouchTime = now;
 
-    timelineWindow.scrollLeft = touchScrollStart - dx;
+    // If it's a vertical scroll gesture, do not move the horizontal timeline
+    if (isScrollingVertical) {
+      return;
+    }
+
+    if (isScrollingHorizontal) {
+      if (absDx > 5) dragMoved = true;
+
+      // Track velocity from recent movement
+      const now = Date.now();
+      const dt = now - lastTouchTime;
+      if (dt > 0) {
+        touchVelocity = -(touch.clientX - lastTouchX) / dt * 16;
+      }
+      lastTouchX = touch.clientX;
+      lastTouchTime = now;
+
+      timelineWindow.scrollLeft = touchScrollStart - dx;
+    }
   }, { passive: true });
 
   timelineWindow.addEventListener('touchend', () => {
-    // Kick off momentum scroll
-    momentumRafId = requestAnimationFrame(runMomentum);
+    // Only kick off momentum scroll if we were actually horizontal scrolling
+    if (isScrollingHorizontal) {
+      momentumRafId = requestAnimationFrame(runMomentum);
+    }
   }, { passive: true });
 
   timelineWindow.addEventListener('touchcancel', () => {
