@@ -73,17 +73,34 @@ To deploy the dynamic backend server:
 *   Make sure to configure the start script as `npm start`.
 *   The application automatically binds to the `process.env.PORT` variable provided by the host environment.
 
-### 3. Standalone Single-File Deployment (package.html)
-For clients who require an offline-ready, serverless, or highly portable version, the project includes a pre-compiled single-file build:
-*   **Self-Contained**: [package.html](file:///Users/yatharth/Documents/Development/Tattle/Boom%20Visualisations/Timeline%20Visualisation/package.html) bundles all structure, inline styling, JS interaction, inline SVG favicon data, and the raw CSV dataset directly in one file.
-*   **Serverless & Offline-Ready**: It runs instantly when opened directly in any web browser (via `file://` protocol) and bypasses CORS security policies.
-*   **Easy to Embed/Share**: Simply deliver the single `package.html` file to the client to host statically, drop onto a desktop, or load inside an iframe.
+### 3. Standalone Single-File Deployment (timeline_visualisation_package.html)
+For clients who require an offline-ready, serverless, or highly portable version, the project includes a compiled single-file build:
+*   **Compilation**: Run `node bundle.js` in the project root to generate the self-contained [timeline_visualisation_package.html](file:///Users/yatharth/Documents/Development/Tattle/Boom%20Visualisations/Timeline%20Visualisation/timeline_visualisation_package.html) file.
+*   **Self-Contained**: It bundles all HTML structure, CSS layout styling, JS interaction, SVG favicon data, and the raw CSV dataset in one single file.
+*   **Serverless & Offline-Ready**: It runs instantly when opened directly in any browser (via `file://` protocol) and bypasses CORS policies.
 
 ---
 
-## Embedding the Timeline
+## Embedding and CMS Integration
 
-You can seamlessly embed this timeline into any external article, blog post, or webpage using the following responsive `<iframe>` code template:
+You can easily embed this timeline into an existing website or CMS (such as WordPress, Webflow, Squarespace, Shopify, or Wix) by loading the self-contained page inside a responsive `<iframe>`.
+
+### 1. Host the compiled HTML and use an Iframe
+Upload the compiled [timeline_visualisation_package.html](file:///Users/yatharth/Documents/Development/Tattle/Boom%20Visualisations/Timeline%20Visualisation/timeline_visualisation_package.html) file to your media library, hosting server, or storage bucket (e.g., AWS S3, Cloudflare Pages), then add the following code block inside your CMS or HTML editor:
+
+```html
+<iframe 
+  src="https://yourdomain.com/path/to/timeline_visualisation_package.html" 
+  style="width: 100%; height: 750px; border: none; display: block;" 
+  scrolling="no" 
+  allow="fullscreen" 
+  allowfullscreen
+  title="Timeline Visualisation">
+</iframe>
+```
+
+### 2. Embed using the live URL
+Alternatively, you can embed the live hosted version directly using this template:
 
 ```html
 <iframe 
@@ -95,3 +112,8 @@ You can seamlessly embed this timeline into any external article, blog post, or 
   title="Timeline Visualisation">
 </iframe>
 ```
+
+### Dimensions & Responsive Design
+*   **Width**: Set to `100%` so the timeline matches the layout container of your host website.
+*   **Height**: Configured to `750px` to comfortably accommodate the dual-track system, interactive cards, navigation bar, and footer without causing a vertical scrollbar inside the frame.
+*   **Scrolling**: Set to `no` to avoid double-scrollbar issues, allowing users to scroll past the embed smoothly on mobile and desktop.
