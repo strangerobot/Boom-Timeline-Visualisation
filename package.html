@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timeline of an AI influencer</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='11' r='4.5' fill='%23000000'/><path d='M7 26 C7 21, 11 18, 16 18 C21 18, 25 21, 25 26' fill='%23000000'/><path d='M16 7 L18.5 13.5 L25 16 L18.5 18.5 L16 25 L13.5 18.5 L7 16 L13.5 13.5 Z' fill='%23bc0000' stroke='%23ffffff' stroke-width='1' stroke-linejoin='round'/></svg>">
+  
+  <!-- Load Premium Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,700;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Variables for Dynamic Config via CSV */
+    :root {
+      --track1-color: #bc0000;
+      --track2-color: #a47e03;
+      --merged-color: #5d5745;
+      --milestone-color: #5a5a5a;
+
+      --bg-outer: #f2eee9;
+      --bg-inner: #faf6f0;
+      --bg-card: #ffffff;
+      --border-color: rgba(0, 0, 0, 0.1);
+      --border-inactive: rgba(0, 0, 0, 0.2);
+      --font-serif: 'IBM Plex Serif', Georgia, serif;
+      --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+      --text-gray: #8d8d8d;
+      --text-light-gray: #aeaeae;
+      --text-black: #111111;
+      --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.03);
+      --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+      --transition-speed: 0.3s;
+    }
+
+    /* Base resets */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    /* Timeline Container (Outer Window Frame) */
+    #timeline-container {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 25px;
+      width: 100vw;
+      max-width: 100vw;
+      height: 100vh;
+      max-height: none;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 0 0 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    /* Fullscreen Mode override */
+    #timeline-container.fullscreen {
+      width: 100vw;
+      height: 100vh;
+      max-width: none;
+      max-height: none;
+      border-radius: 0;
+      padding: 15px;
+      box-shadow: none;
+      border: none;
+    }
+
+    /* Header Bar */
+    .timeline-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 15px;
+      width: 100%;
+      height: 70px;
+      flex-shrink: 0;
+    }
+
+    /* Nav buttons layout */
+    .nav-controls {
+      display: flex;
+      gap: 10px;
+      height: 48px;
+    }
+
+    .nav-btn {
+      background-color: #faf6f0;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 52px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      outline: none;
+      cursor: pointer;
+      color: #333333;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .nav-btn svg {
+      display: block;
+      width: 26px;
+      height: 26px;
+    }
+
+    .nav-btn:hover {
+      background-color: #f0e6da;
+      transform: translateY(-1px);
+    }
+
+    .nav-btn:active {
+      background-color: #e4d5c3;
+      transform: translateY(0);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* Center Instruction Text */
+    .instruction-text {
+      font-family: var(--font-serif);
+      font-size: 12px;
+      color: var(--text-black);
+      text-align: center;
+      user-select: none;
+    }
+
+    /* Fullscreen Toggle Block */
+    .fullscreen-control {
+      display: flex;
+      height: 48px;
+    }
+
+    /* Inner Window (Timeline Canvas Viewport) */
+    .timeline-window {
+      background-color: var(--bg-inner);
+      border: none;
+      border: 0.5px solid var(--border-color);
+      border-radius: 26px 26px 24px 24px;
+      flex-grow: 1;
+      height: 800px;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.01);
+      touch-action: pan-y;
+    }
+
+    /* Scrolling Canvas */
+    .timeline-canvas {
+      height: 100vh;
+      width: 2500px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      cursor: grab;
+      user-select: none;
+      touch-action: pan-y;
+    }
+
+    .timeline-canvas:active {
+      cursor: grabbing;
+    }
+
+    /* Unmasked SVG for central tracks */
+    .timeline-svg-unmasked {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Background/Track SVG */
+    .timeline-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* DOM Elements Overlay */
+    .timeline-elements {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* Track Names / Labels (Left side) */
+    .track-label {
+      position: absolute;
+      font-family: var(--font-serif);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      pointer-events: none;
+      left: 65px;
+      z-index: 10;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .track-label.creator {
+      color: var(--track1-color);
+      top: 201px;
+    }
+
+    .track-label.persona {
+      color: var(--track2-color);
+      top: 429px;
+    }
+
+    /* Year Label Capsules on dashed axis */
+    .year-label {
+      position: absolute;
+      background-color: var(--bg-inner);
+      padding: 5px 12px;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-light-gray);
+      transform: translate(-50%, -50%);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* Card layout styles */
+    .timeline-card {
+      position: absolute;
+      background-color: #ffffff;
+      border: 1.5px solid rgba(0, 0, 0, 0.22);
+      border-radius: 20px;
+      width: 320px;
+      min-height: 120px;
+      padding: 20px 18px 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: none;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, filter 0.4s ease;
+      cursor: default;
+      pointer-events: auto;
+    }
+
+    /* Shorter sizing for middle cards */
+    .timeline-card.track-3 {
+      min-height: 100px;
+      padding: 12px 16px;
+      gap: 4px;
+    }
+
+    .timeline-card.track-3 .card-description {
+      margin-top: 2px;
+    }
+
+    .timeline-card.pre-merge-tech {
+      border-radius: 0;
+      box-shadow: none;
+      background-color: var(--bg-inner);
+    }
+
+    .timeline-card.pre-merge-tech:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Taller sizing for merged cards after the merge */
+    .timeline-card.track-merged {
+      min-height: auto;
+      padding: 24px 20px 20px 20px;
+      gap: 8px;
+    }
+
+    /* Unique spacious layout for the conclusion card */
+    .timeline-card.final-card {
+      width: 440px;
+      padding: 32px 28px;
+    }
+
+    .timeline-card.final-card .card-title {
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+
+    .timeline-card.final-card .card-date {
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .timeline-card.final-card .card-description {
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .timeline-card.final-card.pre-merge-tech {
+      gap: 8px;
+      min-height: auto;
+    }
+
+    .timeline-card.final-card.pre-merge-tech .card-description {
+      margin-top: 4px;
+    }
+
+    .timeline-card:hover {
+      transform: scale(1.01);
+      box-shadow: none;
+    }
+
+    /* Card inner text elements */
+    .card-title {
+      font-family: var(--font-serif);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    /* Dynamic colors for card titles based on tracks */
+    .timeline-card.track-1 .card-title {
+      color: var(--track1-color);
+    }
+
+    .timeline-card.track-2 .card-title {
+      color: var(--track2-color);
+    }
+
+    .timeline-card.track-3 .card-title {
+      color: var(--milestone-color);
+    }
+
+    .timeline-card.track-merged .card-title {
+      color: var(--merged-color);
+    }
+
+    .timeline-card.track-merged .card-description {
+      color: var(--merged-color);
+    }
+
+    .timeline-card.track-merged .card-date {
+      color: var(--merged-color);
+      opacity: 0.8;
+    }
+
+    .card-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--text-gray);
+      line-height: 1;
+    }
+
+    .card-description {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--text-black);
+      line-height: 1.5;
+      margin-top: 4px;
+      white-space: pre-line;
+    }
+
+    .timeline-elements.has-highlighted .timeline-card:not(.highlighted) {
+      filter: grayscale(40%) blur(0.2px);
+      border-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .timeline-elements.has-highlighted .timeline-card:not(.highlighted)>* {
+      opacity: 0.3;
+    }
+
+    /* Highlighted states for Cards */
+    .timeline-card.highlighted {
+      transform: scale(1.04);
+      z-index: 20 !important;
+      border-width: 2px;
+      pointer-events: auto !important;
+    }
+
+    .timeline-card.highlighted.track-1 {
+      border-color: var(--track1-color);
+      box-shadow: none;
+    }
+
+    .timeline-card.highlighted.track-2 {
+      border-color: var(--track2-color);
+      box-shadow: none;
+    }
+
+    .timeline-card.highlighted.track-3 {
+      border-color: var(--milestone-color);
+      box-shadow: none;
+    }
+
+    .timeline-card.highlighted.track-merged {
+      border-color: var(--merged-color);
+      box-shadow: none;
+    }
+
+    /* Footer Attribution */
+    .timeline-footer {
+      position: absolute;
+      bottom: 10px;
+      right: 15px;
+      z-index: 2;
+      opacity: 0.25;
+      transition: opacity 0.2s ease;
+    }
+
+    .timeline-footer:hover {
+      opacity: 0.8;
+    }
+
+    .timeline-footer a {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-black);
+      text-decoration: none;
+    }
+
+    .timeline-footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      #timeline-container {
+        width: calc(100vw - 2px);
+        height: 100vh;
+        margin: 1px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 25px;
+        padding: 8px 0 0 0;
+      }
+
+      .timeline-window {
+        height: 550px;
+      }
+
+      .timeline-header {
+        height: 56px;
+        padding: 5px 10px;
+      }
+
+      .nav-controls {
+        height: 36px;
+        gap: 6px;
+      }
+
+      .nav-btn {
+        width: 44px;
+        height: 36px;
+        border-radius: 8px;
+      }
+
+      .nav-btn svg {
+        width: 24px;
+        height: 24px;
+      }
+
+      .instruction-text {
+        font-size: 10px;
+        flex-grow: 1;
+        padding: 0 5px;
+        line-height: 1.2;
+      }
+
+      .fullscreen-control {
+        height: 36px;
+      }
+
+      .timeline-card {
+        width: 260px;
+        min-height: 115px;
+        padding: 18px 16px;
+        border-radius: 12px;
+        gap: 6px;
+      }
+
+      .timeline-card.track-3 {
+        min-height: 84px;
+        padding: 12px 10px;
+        gap: 5px;
+      }
+
+      .timeline-card.track-merged {
+        min-height: auto;
+        padding: 18px 16px;
+        gap: 8px;
+      }
+
+      .timeline-card.final-card {
+        width: 290px;
+        padding: 24px 20px;
+      }
+
+      .timeline-card.final-card .card-title {
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .timeline-card.final-card .card-date {
+        font-size: 11px;
+        margin-bottom: 10px;
+      }
+
+      .timeline-card.final-card .card-description {
+        font-size: 11.5px;
+        line-height: 1.55;
+      }
+
+      .card-title {
+        font-size: 13px;
+      }
+
+      .card-date {
+        font-size: 11px;
+      }
+
+      .card-description {
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .track-label {
+        font-size: 12px;
+        left: 15px;
+      }
+
+      .year-label {
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+
+      .timeline-card.final-card.pre-merge-tech {
+        gap: 8px;
+        min-height: auto;
+      }
+
+      .timeline-card.final-card.pre-merge-tech .card-description {
+        margin-top: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="timeline-container">
+    <!-- Top Navigation Bar -->
+    <header class="timeline-header">
+      <div class="nav-controls">
+        <button id="btn-prev" class="nav-btn" aria-label="Previous">
+          <!-- Back arrow SVG -->
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 8l-8 8 8 8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button id="btn-next" class="nav-btn" aria-label="Next">
+          <!-- Forward arrow SVG -->
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 8l8 8-8 8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      
+      <p class="instruction-text">Swipe or use arrows to navigate</p>
+      
+      <div class="fullscreen-control">
+        <button id="btn-fullscreen" class="nav-btn" aria-label="Toggle Fullscreen">
+          <!-- Fullscreen SVG -->
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 12V6h6M26 12V6h-6M6 20v6h6M26 20v6h-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+    
+    <!-- Timeline Window (Viewport) -->
+    <main id="timeline-window" class="timeline-window">
+      <!-- Timeline Canvas (Dynamic scrolling container) -->
+      <div id="timeline-canvas" class="timeline-canvas">
+        
+        <!-- SVG Container for Unmasked central timeline lines -->
+        <svg id="timeline-svg-unmasked" class="timeline-svg-unmasked"></svg>
+
+        <!-- SVG Container for Timeline Tracks and Connectors -->
+        <svg id="timeline-svg" class="timeline-svg"></svg>
+        
+        <!-- Interactive Elements Overlay (Cards, Years, Milestones) -->
+        <div id="timeline-elements" class="timeline-elements"></div>
+        
+      </div>
+    </main>
+    <footer class="timeline-footer">
+      <a href="https://strangerobot.design" target="_blank" rel="noopener">designed and developed by strangerobot.design</a>
+    </footer>
+  </div>
+
+  <!-- Raw CSV Data Embedded Directly inside the HTML -->
+  <script type="text/plain" id="timeline-csv-data">Type,ID,Year,Track,Title,Date Label,Description
+config,merge_after_event_id,31,,,
+config,merge_before_event_id,32,,,
+config,track1_label,"Pratim Bora (The Creator)",,,
+config,track1_color,#bc0000,,,
+config,track2_label,"Babydoll Archi  (The AI Influencer)",,,
+config,track2_color,#a47e03,,,
+config,merged_label,Unified,,,
+config,merged_color,#5d5745,,,
+config,milestone_color,#5a5a5a,,,
+event,1,2013,1,College,2013,"Leaves Tinsukia for Delhi to study mechanical engineering."
+event,2,2014,1,New Relationship,2014,"Meets the woman at the freshers' party. A year junior in the same programme. Relationship begins."
+event,3,2014-06,3,GANs Introduced,June 2014,"Generative Adversarial Networks were introduced by an academic lab. Sparks new paradigm of machine learning that will enable creation of realistic image, audio and video"
+event,5,2016,1,Suspicion,2016,"Relationship under strain. He suspects her of cheating on him."
+event,6,2017,3,Deepfakes,2017,"The moniker 'deepfakes' is coined on Reddit by a user and subreddit of the same name. Users uploaded videos that used deep learning to swap the faces of celebrities onto porn videos."
+event,7,2017,1,Digital Intrusion,2017,"Returns to Dibrugarh for an Internship. Begins logging into her social media accounts."
+event,8,2017-06,1,Relationship Ends,Mid-2017,"She returns to Assam. He takes a job in the National Capital Region."
+event,9,2018,1,Breakup Fallout,2018,"Pratim returns to Dibrugarh on a break. Learns she has told friends he forced her into the relationship and took her photographs without consent."
+event,10,2018,2,Account Created,2018,"@archihope94 created using real photographs of a woman from Assam."
+event,11,2018,3,RefaceAI,2018,"RefaceAI was launched as a paid ‘face swap’ service alongside others."
+event,12,2018-06,1,First Deepfakes,2018,"Creates @archihope94. Uses Reface AI to place her face onto other women's bodies. Posts 10–12 images."
+event,13,2019,2,Face Swapping,2018-2020,"Account renamed @babydoll_archi. Her face is now placed on other women's bodies with face-swapping AI tools. Content becomes suggestive."
+event,15,2020,1,Advanced Tools,2020,"Returns to Tinsukia during the pandemic. Restarts posting with newer AI tools: Midjourney, OpenArt. His parents assume it is design work for Delhi firms."
+event,17,2021,2,Growth,2021–22,"Increasingly revealing outfits, bold poses. Content geotagged to Delhi, Mumbai, and other cities, building the fiction that she is travelling, working, and living publicly."
+event,19,2022,3,Diffusion Improves,2022,"Release of diffusion models based on image creation such as MidJourney and Stable Diffusion (open weight). The diffusion-based models present improvements over GANs, enabling synthetic imagery to be created with text prompts."
+event,21,2022-11,3,CivitAI,November 2022,"CivitAI was incorporated as a social marketplace of diffusion-based text-to-image models."
+event,22,2023,1,Synthetic Videos,2023,"Learns image-text-to-video generation from YouTube tutorials. Begins using Dzine AI to generate synthetic videos."
+event,40,2023-01,3,Text-to-Video,Early 2023,"Earliest text-to-video models resulting in 2-second videos"
+event,23,2023,2,Fake Backstory,2023,"The character is completely synthetic now. Regularly posts reels. Backstory shared says she was forced into sex work."
+event,24,2023-06,1,Monetisation Begins,2023,"A collaborator reaches out, offers to boost reach and help monetise. Creates a Linktree account. Sets up an ActualFans subscription page. Begins actively monetising the accounts."
+event,25,2023-06,2,Linktree Added,Mid-2023,"A Linktree appears on the bio, leading users to a subscription page for ‘exclusive content’."
+event,26,2024,1,Viral Fame,2024,"The account becomes popular on social media. News publications write profiles of the account like it’s a real person."
+event,27,2024,2,Fake Milestone,2024,"Selected as a ""Playboy global lingerie campaign finalist"" — a milestone gets picked up as a biographical fact by third-party sites."
+event,41,2024,3,Text-to-Video,2024-2025,"Efficiencies in text-to-image models resulting in longer, more realistic videos."
+event,29,2025-04,2,Kendra Photo,April 2025,"First photograph with American adult film actress Kendra Lust posted. Caption is cryptic: ""Some paths are private."" Some moves are strategic. Some stories are best told in chapters, not captions."
+event,30,2025-06,2,Viral Reel,26 June 2025,"The ""Dame Un Grrr"" saree transformation posted: casual clothes to red saree; flawless transformation. Crosses four million views. National media picks it up as a real influencer story."
+event,31,2025-06-30,2,Follower Surge,July 2025,"The Kendra Lust photo resurfaces and spreads. Follower count goes from 82,000 to 1.4 million in days."
+event,32,2025-07,3,Police Complaint,"July, 2025","The Family of the woman (whose face was used to create this AI character) files a complaint. Account name changed to Amira Ishtara. Handle remains @babydoll_archi."
+event,33,2025-07-12,3,Police Raid,"July 12, 2025","FIR is registered; Police trace him through Meta's IP and phone data. Police raid Pratim Bora’s apartment in Tinsukia, Assam where he lives with his parents. Bora is an ex-boyfriend of the woman."
+event,34,2025-07-13,3,Arrest,"July 13, 2025","Pratim Bora arrested. The persona is confirmed as fabricated by the police. He tells investigators he wants to apologise to the woman. The officer describes him as introverted. Police say Pratim made ₹10 lakh in seven months through subscriptions."
+event,35,2025-07-13,3,Charges Filed,"July 13, 2025","FIR filed under BNS sections of obscenity, forgery to harm reputation, criminal intimidation, defamation, and sexual harassment. Two days later IT Act sections of Identity theft and impersonation, privacy violation, and publishing sexually explicit material electronically."
+event,36,2025-08,3,Posting Continues,August 2025,"Telegram channels and social media accounts carrying her name continue posting — different women's faces, same audience."
+event,37,2025-09-11,3,Bail,"September 11, 2025","Default bail granted to Pratim Bora as no charge sheet was filed by police within a 60-day window."
+event,38,2026,3,GenAI Today,2026,"Google releases a video generation model capable of generating a minute-long synthetic video. Open AI shuts down Sora on account of high compute costs while seeing lower-than-expected commercial adoption.
+
+Meanwhile, ‘uncensored’/nudifying image-to-video AI models continue to operate as a paid service."
+event,39,2026-05,3,Case Status,"May 2026 (At time of Publication)","Still on bail. Mobile phone, laptop, and hard disc were seized for forensic analysis and not returned. Bank accounts frozen. Sits at his father’s grocery store in Tinsukia.
+
+No further arrests despite police suspecting a wider network.
+
+Linktree is still live. Links to explicit AI-generated videos circulate on Telegram. Her real name is indexed on pornographic websites."</script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Elements
+      const timelineWindow = document.getElementById('timeline-window');
+      const timelineCanvas = document.getElementById('timeline-canvas');
+      const timelineSvg = document.getElementById('timeline-svg');
+      const timelineSvgUnmasked = document.getElementById('timeline-svg-unmasked');
+      const timelineElements = document.getElementById('timeline-elements');
+      const btnPrev = document.getElementById('btn-prev');
+      const btnNext = document.getElementById('btn-next');
+      const btnFullscreen = document.getElementById('btn-fullscreen');
+      const timelineContainer = document.getElementById('timeline-container');
+
+      // Spotlight and navigation state
+      let timelineItems = [];
+      let activeIndex = -1;
+      let dragMoved = false;
+      let finalEventId = null;
+
+      // Dynamic layout calculator based on screen width/height
+      function getLayout(windowHeight) {
+        const isMobile = window.innerWidth < 600;
+        if (isMobile) {
+          const cardWidth = 260;
+          const colSpacing = 272; // maintaining gap spacing
+          const yearGap = 15;
+          const startX = 20;
+          const colStartPadding = 45;
+          const xLabelOffset = 15;
+
+          const usableHeight = windowHeight - 40;
+          const centerY = usableHeight / 2;
+          const trackOffset = Math.min(100, Math.max(60, usableHeight * 0.1625));
+          const track1Y = centerY - trackOffset;
+          const track2Y = centerY + trackOffset;
+
+          const cardTop1 = track1Y - 30 - 170; // 30px gap above the track line (assumes card height of 170px)
+          const cardTop2 = track2Y + 30;        // 30px gap below the track line
+          const cardTopMerged = centerY - 42;   // Centered (card height is 84px)
+          const cardHeightMergedMobile = 170;
+          const cardTopPostMerge = centerY - (cardHeightMergedMobile / 2);
+
+          return {
+            track1Y,
+            centerY,
+            track2Y,
+            cardTop1,
+            cardTop2,
+            cardTopMerged,
+            cardTopPostMerge,
+            cardWidth,
+            colSpacing,
+            yearGap,
+            startX,
+            colStartPadding,
+            xLabelOffset,
+            cardGap: 30
+          };
+        } else {
+          const centerY = windowHeight / 2;
+          const cardTopMerged = centerY - 57;
+          const cardHeightMergedDesktop = 260;
+          const cardTopPostMerge = centerY - (cardHeightMergedDesktop / 2);
+          const gap = 65;
+          const track1Y = cardTopMerged - gap;
+          const track2Y = cardTopMerged + 115 + gap;
+          const conn = Math.min(45, Math.max(15, (windowHeight - 500) * 0.2)) * 1.2;
+          const cardTop1 = track1Y - conn - 181;
+          const cardTop2 = track2Y + conn;
+
+          return {
+            track1Y,
+            centerY,
+            track2Y,
+            cardTop1,
+            cardTop2,
+            cardTopMerged,
+            cardTopPostMerge,
+            cardWidth: 320,
+            colSpacing: 335, // maintaining gap spacing
+            yearGap: 30,
+            startX: 70,
+            colStartPadding: 70,
+            xLabelOffset: 35,
+            cardGap: conn
+          };
+        }
+      }
+
+      // Scope variables for scroll sticky tracking
+      let x_meeting = 120;
+      let labelCreator = null;
+      let labelPersona = null;
+      let startX1 = 120;
+      let startX2 = 120;
+      let labelStart1 = 65;
+      let labelStart2 = 65;
+
+      // Date Parsing Helpers
+      function getNumericValue(key) {
+        if (!key) return 0;
+        const str = key.toString().trim();
+
+        // Standard YYYY-MM
+        const matchYM = str.match(/^(\d{4})-(\d{2})$/);
+        if (matchYM) {
+          return parseInt(matchYM[1], 10) + (parseInt(matchYM[2], 10) - 1) / 12;
+        }
+
+        // Standard YYYY
+        const matchY = str.match(/^(\d{4})$/);
+        if (matchY) {
+          return parseInt(matchY, 10);
+        }
+
+        // English Month/Year e.g., "June 2026"
+        const dateParsed = Date.parse(str);
+        if (!isNaN(dateParsed)) {
+          const dateObj = new Date(dateParsed);
+          return dateObj.getFullYear() + dateObj.getMonth() / 12;
+        }
+
+        return parseFloat(str) || 0;
+      }
+
+      function getDisplayLabel(key) {
+        if (!key) return '';
+        const str = key.toString().trim();
+
+        // YYYY-MM
+        const matchYM = str.match(/^(\d{4})-(\d{2})$/);
+        if (matchYM) {
+          const year = matchYM[1];
+          const month = parseInt(matchYM[2], 10);
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          return (months[month - 1] || '') + ' ' + year;
+        }
+
+        return str;
+      }
+
+      function getMonthInYear(event, groupYear) {
+        if (groupYear.includes('-')) return 0;
+        const dateStr = event.dateLabel || event.year;
+        if (!dateStr) return 0;
+
+        const dateParsed = Date.parse(dateStr);
+        if (!isNaN(dateParsed)) {
+          return new Date(dateParsed).getMonth();
+        }
+
+        const matchYM = dateStr.match(/^\d{4}-(\d{2})$/);
+        if (matchYM) {
+          return parseInt(matchYM[1], 10) - 1;
+        }
+
+        return 0;
+      }
+
+      // Helper to determine index of first visible element in timeline viewport
+      function getFirstVisibleIndex() {
+        const scrollLeft = timelineWindow.scrollLeft;
+        let labelWidth = 90;
+        if (labelCreator && labelPersona) {
+          labelWidth = Math.max(labelCreator.offsetWidth, labelPersona.offsetWidth) || 90;
+        }
+        const isMobile = window.innerWidth < 600;
+        const labelX = Math.max(isMobile ? 15 : 65, scrollLeft + (isMobile ? 10 : 15));
+        const maskEnd = labelX + labelWidth + 35;
+
+        const idx = timelineItems.findIndex(item => {
+          const rightEdge = item.element.offsetLeft + item.element.offsetWidth;
+          return rightEdge > maskEnd;
+        });
+        return idx !== -1 ? idx : 0;
+      }
+
+      // Helper to disable/enable and blur navigation buttons at timeline boundaries
+      function updateNavigationButtons() {
+        if (timelineItems.length === 0) {
+          btnPrev.disabled = true;
+          btnNext.disabled = true;
+          return;
+        }
+
+        if (activeIndex === 0) {
+          btnPrev.disabled = true;
+          btnPrev.blur();
+        } else {
+          btnPrev.disabled = false;
+        }
+
+        if (activeIndex === timelineItems.length - 1) {
+          btnNext.disabled = true;
+          btnNext.blur();
+        } else {
+          btnNext.disabled = false;
+        }
+      }
+
+      let cachedTimelineData = null;
+
+      // CSV parsing helpers
+      function parseTimelineCSV(csvText) {
+        const data = { config: {}, events: [] };
+        const rows = [];
+        let currentRow = [];
+        let currentField = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < csvText.length; i++) {
+          const char = csvText[i];
+          const nextChar = csvText[i + 1];
+
+          if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+              currentField += '"';
+              i++; // skip next quote
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === ',' && !inQuotes) {
+            currentRow.push(currentField.trim());
+            currentField = '';
+          } else if ((char === '\r' || char === '\n') && !inQuotes) {
+            if (char === '\r' && nextChar === '\n') {
+              i++; // skip \n
+            }
+            currentRow.push(currentField.trim());
+            if (currentRow.length > 0 && currentRow.some(field => field !== '')) {
+              rows.push(currentRow);
+            }
+            currentRow = [];
+            currentField = '';
+          } else {
+            currentField += char;
+          }
+        }
+        if (currentField || currentRow.length > 0) {
+          currentRow.push(currentField.trim());
+          if (currentRow.some(field => field !== '')) {
+            rows.push(currentRow);
+          }
+        }
+
+        if (rows.length === 0) return data;
+        const headers = rows[0];
+
+        for (let i = 1; i < rows.length; i++) {
+          const values = rows[i];
+          const row = {};
+          headers.forEach((header, index) => {
+            row[header] = values[index] || '';
+          });
+
+          if (row.Type === 'config') {
+            data.config[row.ID] = row.Year;
+          } else if (row.Type === 'event') {
+            data.events.push({
+              id: row.ID,
+              year: row.Year,
+              track: parseInt(row.Track, 10),
+              title: row.Title,
+              dateLabel: row['Date Label'] || row.DateLabel,
+              description: row.Description
+            });
+          }
+        }
+
+        // Sort events chronologically
+        data.events.sort((a, b) => {
+          const valA = getNumericValue(a.year);
+          const valB = getNumericValue(b.year);
+          if (valA !== valB) return valA - valB;
+          return a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' });
+        });
+
+        return data;
+      }
+
+      // LOAD DATA FROM INLINED SCRIPT TAG (No server fetch needed)
+      const csvContent = document.getElementById('timeline-csv-data').textContent;
+      const data = parseTimelineCSV(csvContent);
+      cachedTimelineData = data;
+      renderTimeline(data);
+
+      // Debounced window resize event listener to trigger renderTimeline with new layout values
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          if (cachedTimelineData) {
+            renderTimeline(cachedTimelineData);
+          }
+        }, 150);
+      });
+
+      function renderTimeline(data) {
+        const { config, events } = data;
+
+        // Dynamically set the ID of the final event (the last event in chronological order)
+        finalEventId = events.length > 0 ? events[events.length - 1].id : null;
+
+        // Get dynamic layout constants
+        const layout = getLayout(timelineWindow.clientHeight);
+
+        // Apply Config Colors to CSS variables
+        document.documentElement.style.setProperty('--track1-color', config.track1_color || '#bc0000');
+        document.documentElement.style.setProperty('--track2-color', config.track2_color || '#a47e03');
+        document.documentElement.style.setProperty('--merged-color', config.merged_color || '#5d5745');
+        document.documentElement.style.setProperty('--milestone-color', config.milestone_color || '#007179');
+
+        // Clear previous elements
+        timelineElements.innerHTML = '';
+
+        // Clear previous track labels if they exist
+        const oldLabels = timelineCanvas.querySelectorAll('.track-label');
+        oldLabels.forEach(el => el.remove());
+
+        // Reset spotlight navigation state
+        timelineItems = [];
+        activeIndex = -1;
+
+        // Create Track Labels (Left Side)
+        labelCreator = document.createElement('p');
+        labelCreator.className = 'track-label creator';
+        labelCreator.textContent = config.track1_label || 'The Creator';
+        labelCreator.style.top = `${layout.track1Y - 9}px`;
+        timelineCanvas.appendChild(labelCreator);
+
+        labelPersona = document.createElement('p');
+        labelPersona.className = 'track-label persona';
+        labelPersona.textContent = config.track2_label || 'The Persona';
+        labelPersona.style.top = `${layout.track2Y - 7}px`;
+        timelineCanvas.appendChild(labelPersona);
+
+        // Group events by 4-digit year
+        const eventsByYear = {};
+        events.forEach(event => {
+          const yearKey = event.year.split('-')[0];
+          if (!eventsByYear[yearKey]) {
+            eventsByYear[yearKey] = [];
+          }
+          eventsByYear[yearKey].push(event);
+        });
+
+        // Calculate which cards are pre-merge vs post-merge based on the merge boundary IDs
+        const mergeAfterId = config.merge_after_event_id || '31';
+        const mergeBeforeId = config.merge_before_event_id || '32';
+        const mergeAfterIndex = events.findIndex(e => e.id === mergeAfterId);
+        const mergeBeforeIndex = events.findIndex(e => e.id === mergeBeforeId);
+
+        events.forEach((event, idx) => {
+          if (mergeAfterIndex !== -1) {
+            event.isPreMerge = (idx <= mergeAfterIndex);
+          } else if (mergeBeforeIndex !== -1) {
+            event.isPreMerge = (idx < mergeBeforeIndex);
+          } else {
+            event.isPreMerge = true;
+          }
+        });
+
+        // Sort unique 4-digit years chronologically
+        const years = Object.keys(eventsByYear).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+
+        let xOffset = layout.startX;
+        const cardPlacements = [];
+        const yearPositions = [];
+
+        // Pre-calculate positions of years and cards
+        years.forEach((year) => {
+          const yearEvents = eventsByYear[year];
+
+          // Sort all events of the year chronologically
+          const sortedEvents = yearEvents.slice().sort((a, b) => {
+            const timeA = getNumericValue(a.year);
+            const timeB = getNumericValue(b.year);
+            return timeA - timeB;
+          });
+
+          // Group events into columns where they can share a column if they have the exact same date and different tracks
+          const columns = [];
+          sortedEvents.forEach(event => {
+            const eventTime = getNumericValue(event.year);
+            const isPreMergeEvent = event.isPreMerge;
+            const eventTrack = isPreMergeEvent ? event.track : 'merged';
+
+            let placed = false;
+            for (let colIdx = 0; colIdx < columns.length; colIdx++) {
+              const colEvents = columns[colIdx];
+              const colTime = getNumericValue(colEvents[0].year);
+
+              const sameTime = Math.abs(eventTime - colTime) < 0.001;
+              const trackUsed = colEvents.some(e => {
+                const isPreMergeE = e.isPreMerge;
+                const t = isPreMergeE ? e.track : 'merged';
+                return t === eventTrack;
+              });
+
+              if (sameTime && !trackUsed) {
+                colEvents.push(event);
+                placed = true;
+                break;
+              }
+            }
+
+            if (!placed) {
+              columns.push([event]);
+            }
+          });
+
+          const yearXStart = xOffset;
+          const yearPositionsRecord = { year, xStart: yearXStart };
+          yearPositionsRecord.xLabel = yearXStart + layout.xLabelOffset;
+
+          // Compute column offsets dynamically using a greedy constraint solver
+          const colXOffsets = [];
+          const baseSlotSpacing = window.innerWidth < 600 ? 8 : 12; // Highly condensed spacing per month (in pixels)
+          const firstColTime = columns.length > 0 ? getNumericValue(columns[0][0].year) : 0;
+
+          columns.forEach((colEvents, colIdx) => {
+            const timeI = getNumericValue(colEvents[0].year);
+            const t_i = (timeI - firstColTime) * 12; // Time difference in months
+            let x_i = t_i * baseSlotSpacing;
+
+            // Verify collision against all previous columns in the same year block
+            for (let j = 0; j < colIdx; j++) {
+              const prevColEvents = columns[j];
+              const timeJ = getNumericValue(prevColEvents[0].year);
+              const t_j = (timeJ - firstColTime) * 12;
+
+              // Determine if columns share a track
+              let shareTrack = false;
+              const isPreMergeEventI = colEvents[0].isPreMerge;
+              const isPreMergeEventJ = prevColEvents[0].isPreMerge;
+
+              if (!isPreMergeEventI || !isPreMergeEventJ) {
+                shareTrack = true; // post-merge: everything is on the same track (merged)
+              } else {
+                const tracksI = colEvents.map(e => e.track);
+                const tracksJ = prevColEvents.map(e => e.track);
+                shareTrack = tracksI.some(t => tracksJ.includes(t));
+              }
+
+              const prevContainsWide = prevColEvents.some(e => e.title === 'GenAI Today' || e.id === finalEventId);
+              const isMobile = window.innerWidth < 600;
+              const currentSpacing = prevContainsWide ? (isMobile ? layout.colSpacing + 30 : layout.colSpacing + 120) : layout.colSpacing;
+
+              if (shareTrack) {
+                x_i = Math.max(x_i, colXOffsets[j] + currentSpacing);
+              } else {
+                x_i = Math.max(x_i, colXOffsets[j] + (t_i - t_j) * baseSlotSpacing);
+              }
+            }
+
+            colXOffsets.push(x_i);
+          });
+
+          const maxOffset = colXOffsets.length > 0 ? colXOffsets[colXOffsets.length - 1] : 0;
+
+          // Render columns
+          columns.forEach((colEvents, colIdx) => {
+            const colX = yearXStart + layout.colStartPadding + colXOffsets[colIdx];
+            const centerPos = colX + layout.cardWidth / 2;
+
+            colEvents.forEach(event => {
+              let element;
+              const isPreMergeEvent = event.isPreMerge;
+              if (isPreMergeEvent) {
+                if (event.track === 3) {
+                  // Track 3 Card (Milestone)
+                  element = renderCard(event, colX, layout.cardTopMerged, 3);
+                  element.classList.add('pre-merge-tech');
+                  cardPlacements.push({ element, track: 3, x: colX, y: layout.cardTopMerged, isPreMerge: event.isPreMerge, id: event.id });
+                  timelineItems.push({
+                    element,
+                    type: 'card',
+                    centerX: centerPos,
+                    dateValue: getNumericValue(event.year),
+                    track: 3
+                  });
+                } else if (event.track === 1) {
+                  // Track 1 Card
+                  element = renderCard(event, colX, null, 1, layout.track1Y - layout.cardGap);
+                  cardPlacements.push({ element, track: 1, x: colX, y: layout.cardTop1, isPreMerge: event.isPreMerge, id: event.id });
+                  timelineItems.push({
+                    element,
+                    type: 'card',
+                    centerX: centerPos,
+                    dateValue: getNumericValue(event.year),
+                    track: 1
+                  });
+                } else if (event.track === 2) {
+                  // Track 2 Card
+                  element = renderCard(event, colX, layout.cardTop2, 2);
+                  cardPlacements.push({ element, track: 2, x: colX, y: layout.cardTop2, isPreMerge: event.isPreMerge, id: event.id });
+                  timelineItems.push({
+                    element,
+                    type: 'card',
+                    centerX: centerPos,
+                    dateValue: getNumericValue(event.year),
+                    track: 2
+                  });
+                }
+              } else {
+                // Merged Card
+                if (event.track === 3) {
+                  element = renderCard(event, colX, layout.cardTopMerged, 3);
+                  if (event.title === "Sora Shut Down") {
+                    element.classList.add('pre-merge-tech');
+                  }
+                  cardPlacements.push({ element, track: 3, x: colX, y: layout.cardTopMerged, isPreMerge: event.isPreMerge, id: event.id });
+                  timelineItems.push({
+                    element,
+                    type: 'card',
+                    centerX: centerPos,
+                    dateValue: getNumericValue(event.year),
+                    track: 3
+                  });
+                } else {
+                  element = renderCard(event, colX, layout.cardTopPostMerge, 'merged');
+                  cardPlacements.push({ element, track: 'merged', x: colX, y: layout.cardTopPostMerge, isPreMerge: event.isPreMerge, id: event.id });
+                  timelineItems.push({
+                    element,
+                    type: 'card',
+                    centerX: centerPos,
+                    dateValue: getNumericValue(event.year),
+                    track: 'merged'
+                  });
+                }
+              }
+
+              if (event.id === finalEventId) {
+                element.style.bottom = 'auto';
+              }
+
+            });
+          });
+
+          let yearWidth = layout.colStartPadding + maxOffset + layout.colSpacing;
+          const yearXEnd = yearXStart + yearWidth;
+          yearPositionsRecord.xEnd = yearXEnd;
+          yearPositions.push(yearPositionsRecord);
+
+          // Render Year Label (Axis indicator)
+          renderYearLabel(getDisplayLabel(year), yearPositionsRecord.xLabel, layout.centerY);
+
+          // Advance xOffset for the next year
+          xOffset = yearXEnd + layout.yearGap;
+        });
+
+        // Sort timeline items chronologically
+        timelineItems.sort((a, b) => {
+          if (Math.abs(a.dateValue - b.dateValue) > 0.001) {
+            return a.dateValue - b.dateValue;
+          }
+          if (Math.abs(a.centerX - b.centerX) > 0.1) {
+            return a.centerX - b.centerX;
+          }
+          const trackPriority = (t) => {
+            if (t === 1) return 1;
+            if (t === 3) return 2;
+            if (t === 2) return 3;
+            return 4; // 'merged'
+          };
+          return trackPriority(a.track) - trackPriority(b.track);
+        });
+
+        // Calculate canvas width with padding at the end
+        const canvasWidth = Math.max(xOffset + 300, window.innerWidth);
+        timelineCanvas.style.width = `${canvasWidth}px`;
+
+        // Determine the merge point based on the specific merge cards
+        const preMergePlacements = cardPlacements.filter(p => p.isPreMerge && (p.track === 1 || p.track === 2));
+        const postMergePlacements = cardPlacements.filter(p => !p.isPreMerge);
+
+        const afterPlacement = cardPlacements.find(p => p.id === mergeAfterId);
+        const beforePlacement = cardPlacements.find(p => p.id === mergeBeforeId);
+
+        let x_pre_merge_end = layout.startX;
+        let x_post_merge_start = canvasWidth;
+
+        if (afterPlacement) {
+          x_pre_merge_end = afterPlacement.x + layout.cardWidth;
+        } else if (preMergePlacements.length > 0) {
+          x_pre_merge_end = Math.max(...preMergePlacements.map(p => p.x + layout.cardWidth));
+        }
+
+        if (beforePlacement) {
+          x_post_merge_start = beforePlacement.x;
+        } else if (postMergePlacements.length > 0) {
+          x_post_merge_start = Math.min(...postMergePlacements.map(p => p.x));
+        }
+
+        if (x_pre_merge_end > layout.startX && x_post_merge_start < canvasWidth) {
+          x_meeting = (x_pre_merge_end + x_post_merge_start) / 2;
+        } else if (x_post_merge_start < canvasWidth) {
+          x_meeting = layout.startX;
+        } else {
+          x_meeting = canvasWidth;
+        }
+
+        // Set outer-scope track start coordinates dynamically 100px before the first pre-merge card
+        const p1 = cardPlacements.find(p => p.isPreMerge && p.track === 1);
+        const firstCardX1 = p1 ? p1.x : layout.startX;
+        startX1 = firstCardX1 - 100;
+
+        const p2 = cardPlacements.find(p => p.isPreMerge && p.track === 2);
+        const firstCardX2 = p2 ? p2.x : layout.startX;
+        startX2 = firstCardX2 - 100;
+
+        const finalCardPlacement = cardPlacements.find(p => p.id === finalEventId);
+        const x_line_end = finalCardPlacement ? (finalCardPlacement.x + layout.cardWidth) : canvasWidth;
+
+        const isMobile = window.innerWidth < 600;
+        const initialLabelX = isMobile ? 15 : 65;
+        const labelLeftOffset = layout.startX - initialLabelX;
+        labelStart1 = startX1 - labelLeftOffset;
+        labelStart2 = startX2 - labelLeftOffset;
+
+        // Clean up any existing observer if we are re-rendering
+        if (window.timelineResizeObserver) {
+          window.timelineResizeObserver.disconnect();
+        }
+
+        // Now render SVG tracks and connectors (needs cards loaded in DOM to measure heights)
+        const initDraw = () => {
+          // Center Track 3 cards and the final card vertically based on their actual offsetHeight
+          cardPlacements.forEach(p => {
+            if (p.track === 3 || p.id === finalEventId) {
+              const h = p.element.offsetHeight;
+              p.element.style.top = `${layout.centerY - h / 2}px`;
+              p.element.style.bottom = 'auto';
+            }
+          });
+
+          drawSVGTracks(layout, x_line_end, x_pre_merge_end, x_meeting, preMergePlacements.length > 0, postMergePlacements.length > 0);
+          drawCardConnectors(layout, cardPlacements);
+          updateStickyLabelsAndMask();
+        };
+
+        // Use ResizeObserver to ensure connectors are drawn with the correct size after layout/fonts load
+        const observer = new ResizeObserver(() => {
+          initDraw();
+        });
+        cardPlacements.forEach(p => {
+          observer.observe(p.element);
+        });
+        window.timelineResizeObserver = observer;
+
+        requestAnimationFrame(initDraw);
+
+        // Initial navigation buttons state update
+        updateNavigationButtons();
+      }
+
+      // Card Rendering Helper
+      function renderCard(event, x, y, trackType, bottomVal) {
+        const card = document.createElement('div');
+        card.className = `timeline-card track-${trackType}`;
+        if (event.id === finalEventId) {
+          card.classList.add('final-card');
+        }
+        if (event.title === 'GenAI Today') {
+          card.classList.add('final-card', 'pre-merge-tech');
+        }
+        card.style.left = `${x}px`;
+        if (bottomVal !== undefined && bottomVal !== null) {
+          card.style.bottom = `calc(100% - ${bottomVal}px)`;
+        } else {
+          card.style.top = `${y}px`;
+        }
+
+        const title = document.createElement('h3');
+        title.className = 'card-title';
+        title.textContent = event.title;
+        card.appendChild(title);
+
+        const date = document.createElement('p');
+        date.className = 'card-date';
+        date.textContent = event.dateLabel;
+        card.appendChild(date);
+
+        const desc = document.createElement('p');
+        desc.className = 'card-description';
+        desc.textContent = event.description;
+        card.appendChild(desc);
+
+        timelineElements.appendChild(card);
+        return card;
+      }
+
+      // Year Label Rendering Helper
+      function renderYearLabel(displayLabel, x, centerYVal) {
+        const label = document.createElement('div');
+        label.className = 'year-label';
+        label.style.left = `${x}px`;
+        label.style.top = `${centerYVal}px`;
+        label.textContent = displayLabel;
+
+        timelineElements.appendChild(label);
+      }
+
+      // Draw Background tracks inside SVG
+      function drawSVGTracks(layout, canvasWidth, x_pre_merge_end, x_meeting, hasPreMerge, hasPostMerge) {
+        let maskedSvgContent = '';
+        let unmaskedSvgContent = '';
+
+        // Defs with track-specific gradients and masks
+        maskedSvgContent += `
+          <defs>
+            <linearGradient id="track1-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="0">
+              <stop offset="0%" stop-color="white" stop-opacity="0"/>
+              <stop offset="100%" stop-color="white" stop-opacity="1"/>
+            </linearGradient>
+            <mask id="track1-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
+              <rect x="0" y="0" width="100%" height="100%" fill="url(#track1-grad)"/>
+            </mask>
+            <linearGradient id="track2-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="0">
+              <stop offset="0%" stop-color="white" stop-opacity="0"/>
+              <stop offset="100%" stop-color="white" stop-opacity="1"/>
+            </linearGradient>
+            <mask id="track2-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
+              <rect x="0" y="0" width="100%" height="100%" fill="url(#track2-grad)"/>
+            </mask>
+          </defs>
+        `;
+
+        // 1. Dash-line year track (Central timeline) - Unmasked
+        if (hasPreMerge) {
+          unmaskedSvgContent += `
+            <path d="M ${layout.startX} ${layout.centerY} L ${x_meeting} ${layout.centerY}"
+                  stroke="var(--text-light-gray)"
+                  stroke-dasharray="4,4"
+                  stroke-width="2"
+                  fill="none"/>
+          `;
+        }
+
+        // 2. Track 1 (Top, Red) - Masked, starts at startX1
+        if (hasPreMerge) {
+          maskedSvgContent += `
+            <circle cx="${startX1}" cy="${layout.track1Y}" r="4" fill="var(--track1-color)" mask="url(#track1-mask)"/>
+            <path d="M ${startX1} ${layout.track1Y} L ${x_pre_merge_end} ${layout.track1Y} L ${x_meeting} ${layout.centerY - 1.5}"
+                  stroke="var(--track1-color)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                  mask="url(#track1-mask)"/>
+          `;
+        }
+
+        // 3. Track 2 (Bottom, Gold) - Masked, starts at startX2
+        if (hasPreMerge) {
+          maskedSvgContent += `
+            <circle cx="${startX2}" cy="${layout.track2Y}" r="4" fill="var(--track2-color)" mask="url(#track2-mask)"/>
+            <path d="M ${startX2} ${layout.track2Y} L ${x_pre_merge_end} ${layout.track2Y} L ${x_meeting} ${layout.centerY + 1.5}"
+                  stroke="var(--track2-color)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                  mask="url(#track2-mask)"/>
+          `;
+        }
+
+        // 4. Merged Track (Dual-colored: Red & Gold parallel threads) - Unmasked
+        if (hasPostMerge) {
+          unmaskedSvgContent += `
+            <path d="M ${x_meeting} ${layout.centerY - 1.5} L ${canvasWidth} ${layout.centerY - 1.5}"
+                  stroke="var(--track1-color)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  fill="none"/>
+            <path d="M ${x_meeting} ${layout.centerY + 1.5} L ${canvasWidth} ${layout.centerY + 1.5}"
+                  stroke="var(--track2-color)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  fill="none"/>
+          `;
+        }
+
+        timelineSvg.innerHTML = maskedSvgContent;
+        timelineSvgUnmasked.innerHTML = unmaskedSvgContent;
+      }
+
+      // Draw Card Connector Lines
+      function drawCardConnectors(layout, placements) {
+        let svgLines = '';
+
+        placements.forEach(p => {
+          const h = p.element.offsetHeight;
+          const w = p.element.offsetWidth;
+          const cx = p.x + w / 2;
+          const actualTop = p.element.offsetTop;
+
+          if (p.track === 1) {
+            svgLines += `
+              <line x1="${cx}" y1="${actualTop + h}" x2="${cx}" y2="${layout.track1Y}"
+                    stroke="var(--track1-color)"
+                    stroke-width="1.5"
+                    mask="url(#track1-mask)"/>
+            `;
+          } else if (p.track === 2) {
+            svgLines += `
+              <line x1="${cx}" y1="${actualTop}" x2="${cx}" y2="${layout.track2Y}"
+                    stroke="var(--track2-color)"
+                    stroke-width="1.5"
+                    mask="url(#track2-mask)"/>
+            `;
+          }
+        });
+
+        timelineSvg.innerHTML += svgLines;
+      }
+
+      // Sticky Track Label & Mask Update Handler
+      function updateStickyLabelsAndMask() {
+        if (labelCreator && labelPersona) {
+          const scrollLeft = timelineWindow.scrollLeft;
+          const isMobile = window.innerWidth < 600;
+
+          const labelLeft = isMobile ? 10 : 15;
+          const limitOffset = isMobile ? 100 : 150;
+
+          // Calculate independent sticky X for Track 1
+          let label1X = Math.max(labelStart1, scrollLeft + labelLeft);
+          label1X = Math.min(label1X, x_meeting - limitOffset);
+
+          // Calculate independent sticky X for Track 2
+          let label2X = Math.max(labelStart2, scrollLeft + labelLeft);
+          label2X = Math.min(label2X, x_meeting - limitOffset);
+
+          // Position the DOM labels
+          labelCreator.style.left = `${label1X}px`;
+          labelPersona.style.left = `${label2X}px`;
+
+          const label1Width = labelCreator.offsetWidth || 90;
+          const label2Width = labelPersona.offsetWidth || 90;
+
+          // Update SVG mask coordinates dynamically
+          let x1_1 = label1X + label1Width + 5;
+          let x2_1 = label1X + label1Width + 35;
+          if (x1_1 <= startX1) {
+            x1_1 = 0;
+            x2_1 = 0;
+          }
+
+          let x1_2 = label2X + label2Width + 5;
+          let x2_2 = label2X + label2Width + 35;
+          if (x1_2 <= startX2) {
+            x1_2 = 0;
+            x2_2 = 0;
+          }
+
+          const grad1 = document.getElementById('track1-grad');
+          if (grad1) {
+            grad1.setAttribute('x1', x1_1.toString());
+            grad1.setAttribute('x2', x2_1.toString());
+          }
+
+          const grad2 = document.getElementById('track2-grad');
+          if (grad2) {
+            grad2.setAttribute('x1', x1_2.toString());
+            grad2.setAttribute('x2', x2_2.toString());
+          }
+        }
+      }
+
+      // Centering & Spotlight Highlighting Helper
+      function scrollToAndHighlight(index) {
+        // Remove highlighted class from all items
+        timelineItems.forEach(item => {
+          item.element.classList.remove('highlighted');
+        });
+
+        if (index >= 0 && index < timelineItems.length) {
+          activeIndex = index;
+          const activeItem = timelineItems[activeIndex];
+
+          // Highlight current item
+          activeItem.element.classList.add('highlighted');
+          timelineElements.classList.add('has-highlighted');
+
+          // Calculate centering scroll position
+          const viewportWidth = timelineWindow.clientWidth;
+          let itemCenter = activeItem.element.offsetLeft;
+          if (activeItem.type === 'card') {
+            itemCenter += activeItem.element.offsetWidth / 2;
+          }
+
+          const targetScrollLeft = itemCenter - viewportWidth / 2;
+
+          timelineWindow.scroll({
+            left: targetScrollLeft,
+            behavior: 'smooth'
+          });
+        } else {
+          activeIndex = -1;
+          timelineElements.classList.remove('has-highlighted');
+        }
+
+        updateNavigationButtons();
+      }
+
+      // --- INTERACTIVITY HANDLERS ---
+
+      // 1. Scroll events (covers drag-to-scroll, smooth navigation, wheel scroll)
+      timelineWindow.addEventListener('scroll', updateStickyLabelsAndMask);
+
+      // 2. Drag to Scroll (Mouse)
+      let isDown = false;
+      let startMouseX;
+      let startMouseY;
+      let scrollStartLeft;
+
+      timelineWindow.addEventListener('mousedown', (e) => {
+        // If the click starts inside a card, let the browser handle standard text selection/clicks inside it
+        if (e.target.closest('.timeline-card')) {
+          isDown = true;
+          dragMoved = false;
+          startMouseX = e.pageX;
+          startMouseY = e.pageY;
+          scrollStartLeft = timelineWindow.scrollLeft;
+          return;
+        }
+
+        isDown = true;
+        dragMoved = false;
+        timelineWindow.style.cursor = 'grabbing';
+        startMouseX = e.pageX;
+        startMouseY = e.pageY;
+        scrollStartLeft = timelineWindow.scrollLeft;
+        
+        // Prevent default browser action (like starting text selection)
+        e.preventDefault();
+      });
+
+      timelineWindow.addEventListener('mouseleave', () => {
+        isDown = false;
+        timelineWindow.style.cursor = 'grab';
+      });
+
+      timelineWindow.addEventListener('mouseup', () => {
+        isDown = false;
+        timelineWindow.style.cursor = 'grab';
+      });
+
+      timelineWindow.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX;
+        const y = e.pageY;
+
+        // Check if user dragged beyond threshold (5px)
+        const dist = Math.sqrt((x - startMouseX) ** 2 + (y - startMouseY) ** 2);
+        if (dist > 5) {
+          dragMoved = true;
+        }
+
+        const walk = (x - startMouseX) * 1.5;
+        timelineWindow.scrollLeft = scrollStartLeft - walk;
+      });
+
+      // 2b. Touch to Scroll (Touchscreen) with momentum/inertia
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let isScrollingHorizontal = false;
+      let isScrollingVertical = false;
+      let touchScrollStart = 0;
+      let touchVelocity = 0;
+      let lastTouchX = 0;
+      let lastTouchTime = 0;
+      let momentumRafId = null;
+
+      function cancelMomentum() {
+        if (momentumRafId !== null) {
+          cancelAnimationFrame(momentumRafId);
+          momentumRafId = null;
+        }
+      }
+
+      function runMomentum() {
+        if (Math.abs(touchVelocity) < 0.5) {
+          momentumRafId = null;
+          return;
+        }
+        timelineWindow.scrollLeft += touchVelocity;
+        touchVelocity *= 0.92; // friction
+        momentumRafId = requestAnimationFrame(runMomentum);
+      }
+
+      timelineWindow.addEventListener('touchstart', (e) => {
+        cancelMomentum();
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchScrollStart = timelineWindow.scrollLeft;
+        lastTouchX = touch.clientX;
+        lastTouchTime = Date.now();
+        touchVelocity = 0;
+        dragMoved = false;
+        isScrollingHorizontal = false;
+        isScrollingVertical = false;
+      }, { passive: true });
+
+      timelineWindow.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const dx = touch.clientX - touchStartX;
+        const dy = touch.clientY - touchStartY;
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+
+        // Lock scrolling direction once threshold is reached
+        if (!isScrollingHorizontal && !isScrollingVertical) {
+          if (absDx > 8 && absDx > absDy) {
+            isScrollingHorizontal = true;
+          } else if (absDy > 8 && absDy > absDx) {
+            isScrollingVertical = true;
+          }
+        }
+
+        // If it's a vertical scroll gesture, do not move the horizontal timeline
+        if (isScrollingVertical) {
+          return;
+        }
+
+        if (isScrollingHorizontal) {
+          if (absDx > 5) dragMoved = true;
+
+          // Track velocity from recent movement
+          const now = Date.now();
+          const dt = now - lastTouchTime;
+          if (dt > 0) {
+            touchVelocity = -(touch.clientX - lastTouchX) / dt * 16;
+          }
+          lastTouchX = touch.clientX;
+          lastTouchTime = now;
+
+          timelineWindow.scrollLeft = touchScrollStart - dx;
+        }
+      }, { passive: true });
+
+      timelineWindow.addEventListener('touchend', () => {
+        // Only kick off momentum scroll if we were actually horizontal scrolling
+        if (isScrollingHorizontal) {
+          momentumRafId = requestAnimationFrame(runMomentum);
+        }
+      }, { passive: true });
+
+      timelineWindow.addEventListener('touchcancel', () => {
+        cancelMomentum();
+      }, { passive: true });
+
+      // 3. Mouse Wheel horizontal translation
+      timelineWindow.addEventListener('wheel', (e) => {
+        // Only capture horizontal scrolls (trackpad swipes)
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && e.deltaX !== 0) {
+          e.preventDefault();
+          timelineWindow.scrollLeft += e.deltaX;
+        }
+        // Ignore vertical scrolls (mouse wheels), allowing the native page to scroll
+      }, { passive: false });
+
+      // 4. Navigation Buttons (Arrows) - Sequential Pinning
+      btnPrev.addEventListener('click', () => {
+        if (timelineItems.length === 0) return;
+
+        let newIndex;
+        if (activeIndex === -1) {
+          newIndex = getFirstVisibleIndex();
+        } else {
+          newIndex = activeIndex - 1;
+          if (newIndex < 0) {
+            return; // Don't cycle
+          }
+        }
+        scrollToAndHighlight(newIndex);
+      });
+
+      btnNext.addEventListener('click', () => {
+        if (timelineItems.length === 0) return;
+
+        let newIndex;
+        if (activeIndex === -1) {
+          newIndex = getFirstVisibleIndex();
+        } else {
+          newIndex = activeIndex + 1;
+          if (newIndex >= timelineItems.length) {
+            return; // Don't cycle
+          }
+        }
+        scrollToAndHighlight(newIndex);
+      });
+
+      // 5. Canvas Click Delegation (Direct item clicks and background clears)
+      timelineCanvas.addEventListener('click', (e) => {
+        // If the user was dragging to scroll, ignore click selection
+        if (dragMoved) return;
+
+        const targetEl = e.target.closest('.timeline-card');
+
+        if (targetEl) {
+          const idx = timelineItems.findIndex(item => item.element === targetEl);
+          if (idx !== -1) {
+            scrollToAndHighlight(idx);
+          }
+        } else {
+          // Clicked on empty background, clear focus spotlight
+          scrollToAndHighlight(-1);
+        }
+      });
+
+      // 5. Fullscreen Control
+      btnFullscreen.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          timelineContainer.requestFullscreen()
+            .then(() => {
+              timelineContainer.classList.add('fullscreen');
+            })
+            .catch(err => {
+              console.error(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        } else {
+          document.exitFullscreen()
+            .then(() => {
+              timelineContainer.classList.remove('fullscreen');
+            });
+        }
+      });
+
+      // Sync state if user exits fullscreen via ESC key
+      document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+          timelineContainer.classList.remove('fullscreen');
+        } else {
+          timelineContainer.classList.add('fullscreen');
+        }
+      });
+
+      // 6. Keyboard navigation (ArrowLeft and ArrowRight keys)
+      document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+          return;
+        }
+
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          if (timelineItems.length === 0) return;
+
+          let newIndex;
+          if (activeIndex === -1) {
+            newIndex = getFirstVisibleIndex();
+          } else {
+            newIndex = activeIndex - 1;
+            if (newIndex < 0) {
+              return; // Don't cycle
+            }
+          }
+          scrollToAndHighlight(newIndex);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          if (timelineItems.length === 0) return;
+
+          let newIndex;
+          if (activeIndex === -1) {
+            newIndex = getFirstVisibleIndex();
+          } else {
+            newIndex = activeIndex + 1;
+            if (newIndex >= timelineItems.length) {
+              return; // Don't cycle
+            }
+          }
+          scrollToAndHighlight(newIndex);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
