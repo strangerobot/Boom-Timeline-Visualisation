@@ -691,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const desc = document.createElement('p');
     desc.className = 'card-description';
-    desc.textContent = event.description;
+    desc.innerHTML = event.description;
     card.appendChild(desc);
 
     timelineElements.appendChild(card);
